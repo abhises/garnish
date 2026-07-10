@@ -9,6 +9,18 @@ interface Props {
   params: Promise<{ subdomain: string }>;
 }
 
+const getTopicFallbackImage = (slugStr: string, titleStr?: string): string => {
+  const s = (slugStr + ' ' + (titleStr || '')).toLowerCase();
+  if (s.includes('songwrit')) return '/uploads/2018/05/20130809-DSC_9511.jpg';
+  if (s.includes('ableton')) return '/uploads/sites/5/2018/02/Ableton-Live-10-Release_3_web.jpg';
+  if (s.includes('logic')) return '/uploads/2018/03/LogClass-800.jpg';
+  if (s.includes('dj') || s.includes('turntab')) return '/uploads/sites/7/2025/01/PUSH-3-Blur-Dark.png';
+  if (s.includes('mix') || s.includes('master')) return '/uploads/sites/7/2025/01/Girl-in-Headphones-Blur.png';
+  if (s.includes('camp') || s.includes('summer')) return '/uploads/2020/02/Garnish21.jpg';
+  if (s.includes('producer') || s.includes('production')) return '/uploads/sites/7/2020/03/Online-Music-Production-Courses.jpg';
+  return '/uploads/sites/3/2021/09/28afbf82-4126-434a-81cc-853f0216e1f0.jpg';
+};
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { subdomain } = await params;
   const site = SITES[subdomain];
@@ -53,6 +65,10 @@ export default async function ProgramsPage({ params }: Props) {
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
             {products.map((product) => {
               const featuredImg = getFeaturedImage(product, 'medium');
+              let imgUrl = featuredImg?.url;
+              if (!imgUrl || imgUrl.toLowerCase().includes('logo')) {
+                imgUrl = getTopicFallbackImage(product.slug, product.title.rendered);
+              }
               return (
                 <div 
                   key={product.id}
@@ -60,18 +76,12 @@ export default async function ProgramsPage({ params }: Props) {
                 >
                   <div>
                     <div className="relative aspect-[16/10] bg-slate-100 overflow-hidden">
-                      {featuredImg && typeof featuredImg.url === 'string' && featuredImg.url.trim() !== '' ? (
-                        <Image
-                          src={featuredImg.url}
-                          alt={featuredImg.alt}
-                          fill
-                          className="object-cover group-hover:scale-102 transition-transform duration-300"
-                        />
-                      ) : (
-                        <div className="absolute inset-0 flex items-center justify-center text-slate-400 font-mono text-xs">
-                          Garnish Music Academy
-                        </div>
-                      )}
+                      <Image
+                        src={imgUrl}
+                        alt={featuredImg?.alt || product.title.rendered}
+                        fill
+                        className="object-cover group-hover:scale-102 transition-transform duration-300"
+                      />
                     </div>
 
                     <div className="p-6">

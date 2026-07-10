@@ -12,17 +12,16 @@ const nextConfig: NextConfig = {
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     remotePatterns: [
-      // Wildcard covers all Garnish Multisite subdomains automatically
+      // Wildcard covers all Garnish Multisite subdomains automatically over HTTPS and HTTP
       {
         protocol: 'https',
         hostname: '**.garnishmusicproduction.com',
-        pathname: '/wp-content/uploads/**',
+        pathname: '/**',
       },
-      // Main www site
       {
-        protocol: 'https',
-        hostname: 'www.garnishmusicproduction.com',
-        pathname: '**',
+        protocol: 'http',
+        hostname: '**.garnishmusicproduction.com',
+        pathname: '/**',
       },
       // Local Docker fallback
       {

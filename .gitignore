@@ -44,4 +44,6 @@ garnish-local.db
 # media assets
 /public/media/
 /media/
+/public/uploads/
+/uploads/
 

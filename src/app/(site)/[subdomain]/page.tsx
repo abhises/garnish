@@ -98,7 +98,7 @@ export default async function SubdomainPage({ params }: SubdomainPageProps) {
   }
 
   // Fetch data concurrently for fast page loads
-  const [posts, products] = await Promise.all([
+  const [, products] = await Promise.all([
     getPosts(subdomain, 3),
     getProducts(subdomain, 6)
   ]);
@@ -112,10 +112,11 @@ export default async function SubdomainPage({ params }: SubdomainPageProps) {
         {/* Hero background */}
         <div className="relative min-h-[500px] lg:min-h-[600px] flex items-center justify-center">
           <Image
-            src="/studio-hero.png"
-            alt="Garnish Music Production Studio"
+            src={site.heroImage || '/studio-hero.png'}
+            alt={`${site.name} - ${site.city}`}
             fill
             priority
+            unoptimized={(site.heroImage || '/studio-hero.png').startsWith('http')}
             sizes="100vw"
             className="object-cover opacity-40"
           />

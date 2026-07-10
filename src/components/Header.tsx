@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { getLocalLink, type SiteConfig } from '@/lib/sites';
 
@@ -75,9 +76,16 @@ const COURSES_ITEMS = {
 };
 
 export default function Header({ site }: HeaderProps) {
+  const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const menuTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Close menus automatically whenever route/pathname changes
+  useEffect(() => {
+    setActiveMenu(null);
+    setMobileOpen(false);
+  }, [pathname]);
 
   // Close mobile menu on resize
   useEffect(() => {
@@ -95,18 +103,28 @@ export default function Header({ site }: HeaderProps) {
     menuTimeout.current = setTimeout(() => setActiveMenu(null), 150);
   };
 
+  const handleLinkClick = () => {
+    setActiveMenu(null);
+    setMobileOpen(false);
+  };
+
   const isExternal = (href: string) => href.startsWith('http');
 
-  const renderLink = (href: string, label: string, className: string) => {
+  const renderLink = (href: string, label: string, className: string, onClickExtra?: () => void) => {
     const localHref = getLocalLink(href);
+    const handleClick = () => {
+      handleLinkClick();
+      if (onClickExtra) onClickExtra();
+    };
+
     if (isExternal(localHref)) {
       return (
-        <a href={localHref} className={className} target="_blank" rel="noopener noreferrer">
+        <a href={localHref} className={className} target="_blank" rel="noopener noreferrer" onClick={handleClick}>
           {label}
         </a>
       );
     }
-    return <Link href={localHref} className={className}>{label}</Link>;
+    return <Link href={localHref} className={className} onClick={handleClick}>{label}</Link>;
   };
 
   return (
@@ -114,7 +132,7 @@ export default function Header({ site }: HeaderProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-[70px]">
           {/* Logo - matching the Garnish block lettering */}
-          <Link href="/" className="flex items-center gap-2 shrink-0">
+          <Link href="/" className="flex items-center gap-2 shrink-0" onClick={handleLinkClick}>
             <span className="text-[22px] font-black tracking-[0.04em] text-slate-900 uppercase"
               style={{ fontFamily: 'var(--font-space-grotesk), sans-serif' }}>
               GAR
@@ -177,6 +195,7 @@ export default function Header({ site }: HeaderProps) {
                             <li key={item.code}>
                               <a
                                 href={getLocalLink(item.href)}
+                                onClick={handleLinkClick}
                                 className={`block text-[13px] transition-colors ${
                                   site.subdomain === item.code
                                     ? 'text-[#c0392b] font-semibold'
@@ -241,6 +260,7 @@ export default function Header({ site }: HeaderProps) {
             {/* Contact */}
             <Link
               href="/contact-map/"
+              onClick={handleLinkClick}
               className="px-4 py-6 text-[13px] font-semibold text-slate-700 hover:text-[#c0392b] uppercase tracking-wide transition-colors"
             >
               Contact
@@ -252,6 +272,7 @@ export default function Header({ site }: HeaderProps) {
             {/* Cart Icon */}
             <Link
               href="/cart/"
+              onClick={handleLinkClick}
               className="relative p-2 text-slate-600 hover:text-[#c0392b] transition-colors"
               aria-label="Cart"
             >
@@ -295,11 +316,11 @@ export default function Header({ site }: HeaderProps) {
                 return (
                   <div key={item.href}>
                     {isExternal(localHref) ? (
-                      <a href={localHref} className="block px-3 py-2 text-sm text-slate-600" onClick={() => setMobileOpen(false)}>
+                      <a href={localHref} className="block px-3 py-2 text-sm text-slate-600" onClick={handleLinkClick}>
                         {item.label}
                       </a>
                     ) : (
-                      <Link href={localHref} className="block px-3 py-2 text-sm text-slate-600" onClick={() => setMobileOpen(false)}>
+                      <Link href={localHref} className="block px-3 py-2 text-sm text-slate-600" onClick={handleLinkClick}>
                         {item.label}
                       </Link>
                     )}
@@ -310,7 +331,7 @@ export default function Header({ site }: HeaderProps) {
               <p className="px-3 py-2 mt-2 text-[10px] font-bold uppercase tracking-widest text-[#c0392b]">Locations</p>
               <div className="grid grid-cols-3 gap-1 px-3">
                 {ABOUT_ITEMS.locations.map((item) => (
-                  <a key={item.code} href={getLocalLink(item.href)} className="text-sm text-slate-600 py-1 hover:text-[#c0392b]">
+                  <a key={item.code} href={getLocalLink(item.href)} className="text-sm text-slate-600 py-1 hover:text-[#c0392b]" onClick={handleLinkClick}>
                     {item.label}
                   </a>
                 ))}
@@ -326,11 +347,11 @@ export default function Header({ site }: HeaderProps) {
                   return (
                     <div key={item.href}>
                       {isExternal(localHref) ? (
-                        <a href={localHref} className="block px-3 py-2 text-sm text-slate-600" onClick={() => setMobileOpen(false)}>
+                        <a href={localHref} className="block px-3 py-2 text-sm text-slate-600" onClick={handleLinkClick}>
                           {item.label}
                         </a>
                       ) : (
-                        <Link href={localHref} className="block px-3 py-2 text-sm text-slate-600" onClick={() => setMobileOpen(false)}>
+                        <Link href={localHref} className="block px-3 py-2 text-sm text-slate-600" onClick={handleLinkClick}>
                           {item.label}
                         </Link>
                       )}
@@ -344,7 +365,7 @@ export default function Header({ site }: HeaderProps) {
             <Link
               href="/contact-map/"
               className="block px-3 py-3 text-sm font-semibold text-slate-800"
-              onClick={() => setMobileOpen(false)}
+              onClick={handleLinkClick}
             >
               Contact
             </Link>

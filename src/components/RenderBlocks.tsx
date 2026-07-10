@@ -66,8 +66,8 @@ export const RenderBlocks: React.FC<BlockProps> = ({ layout, site }) => {
 
           case 'richText': {
             const cleanHtml = (block.htmlContent || '')
-              .replace(/src=["']\/wp-content\//g, 'src="https://www.garnishmusicproduction.com/wp-content/')
-              .replace(/srcset=["']\/wp-content\//g, 'srcset="https://www.garnishmusicproduction.com/wp-content/');
+              .replace(/https?:\/\/[^\/]+\/wp-content\/uploads\//gi, '/uploads/')
+              .replace(/\/wp-content\/uploads\//gi, '/uploads/');
 
             return (
               <section key={key} className={`mx-auto ${block.containerWidth === 'full' ? 'w-full' : 'max-w-4xl'}`}>

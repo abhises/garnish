@@ -102,7 +102,7 @@ export default async function BlogPostPage({ params }: Props) {
           <div 
             className="wp-content prose prose-slate max-w-none"
             style={{ '--accent': site.accentColor } as React.CSSProperties}
-            dangerouslySetInnerHTML={{ __html: post.content.rendered }}
+            dangerouslySetInnerHTML={{ __html: post.content.rendered.replace(/https?:\/\/[^\/]+\/wp-content\/uploads\//gi, '/uploads/').replace(/\/wp-content\/uploads\//gi, '/uploads/') }}
           />
 
           {/* Footer Back Link */}

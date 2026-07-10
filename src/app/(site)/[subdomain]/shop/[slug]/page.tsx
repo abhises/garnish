@@ -1,4 +1,4 @@
-import { getProductBySlug, getFeaturedImage } from '@/lib/wordpress';
+import { getProductBySlug, getFeaturedImage, resolveImageUrl } from '@/lib/wordpress';
 import { SITES } from '@/lib/sites';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
@@ -23,6 +23,18 @@ interface Props {
   }>;
 }
 
+const getTopicFallbackImage = (slugStr: string, titleStr?: string): string => {
+  const s = (slugStr + ' ' + (titleStr || '')).toLowerCase();
+  if (s.includes('songwrit')) return '/uploads/2018/05/20130809-DSC_9511.jpg';
+  if (s.includes('ableton')) return '/uploads/sites/5/2018/02/Ableton-Live-10-Release_3_web.jpg';
+  if (s.includes('logic')) return '/uploads/2018/03/LogClass-800.jpg';
+  if (s.includes('dj') || s.includes('turntab')) return '/uploads/sites/7/2025/01/PUSH-3-Blur-Dark.png';
+  if (s.includes('mix') || s.includes('master')) return '/uploads/sites/7/2025/01/Girl-in-Headphones-Blur.png';
+  if (s.includes('camp') || s.includes('summer')) return '/uploads/2020/02/Garnish21.jpg';
+  if (s.includes('producer') || s.includes('production')) return '/uploads/sites/7/2020/03/Online-Music-Production-Courses.jpg';
+  return '/uploads/sites/3/2021/09/28afbf82-4126-434a-81cc-853f0216e1f0.jpg';
+};
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { subdomain, slug } = await params;
   const targetSlug = LEGACY_SLUG_MAP[slug] || slug;
@@ -30,7 +42,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   try {
     const payload = await getPayload({ config: configPromise });
-    const result = await payload.find({
+    let result = await payload.find({
       collection: 'courses',
       where: {
         and: [
@@ -39,6 +51,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         ],
       },
     });
+    if (result.docs.length === 0 && subdomain !== 'www') {
+      result = await payload.find({
+        collection: 'courses',
+        where: {
+          and: [
+            { slug: { equals: targetSlug } },
+            { tenant: { equals: 'www' } },
+          ],
+        },
+      });
+    }
     if (result.docs[0]) {
       const c = result.docs[0];
       return {
@@ -77,7 +100,7 @@ export default async function ProductDetailPage({ params }: Props) {
   // 1. First: Check if this course/product exists in Payload CMS v3 ('courses' collection)
   try {
     const payload = await getPayload({ config: configPromise });
-    const result = await payload.find({
+    let result = await payload.find({
       collection: 'courses',
       where: {
         and: [
@@ -86,6 +109,18 @@ export default async function ProductDetailPage({ params }: Props) {
         ],
       },
     });
+
+    if (result.docs.length === 0 && subdomain !== 'www') {
+      result = await payload.find({
+        collection: 'courses',
+        where: {
+          and: [
+            { slug: { equals: targetSlug } },
+            { tenant: { equals: 'www' } },
+          ],
+        },
+      });
+    }
 
     if (result.docs[0]) {
       const course = result.docs[0];
@@ -113,13 +148,18 @@ export default async function ProductDetailPage({ params }: Props) {
 
                   {(() => {
                     const imgObj = typeof course.featuredImage === 'object' && course.featuredImage !== null ? course.featuredImage : null;
-                    const imgUrl = imgObj?.url || (imgObj?.filename ? `/media/${imgObj.filename}` : null);
-                    if (!imgUrl || !imgObj) return null;
+                    const rawUrl = imgObj?.wpUploadPath
+                      ? `/uploads/${imgObj.wpUploadPath}`
+                      : (imgObj?.url || (imgObj?.filename ? `/media/${imgObj.filename}` : null));
+                    let imgUrl = resolveImageUrl(rawUrl);
+                    if (!imgUrl || imgUrl.toLowerCase().includes('logo') || (imgObj?.filename && imgObj.filename.toLowerCase().includes('logo'))) {
+                      imgUrl = getTopicFallbackImage(course.slug || targetSlug, course.title);
+                    }
                     return (
                       <div className="relative aspect-[16/9] w-full rounded-2xl overflow-hidden bg-slate-100 mb-8 shadow-sm border border-slate-100">
                         <CourseImage
                           src={imgUrl}
-                          alt={imgObj.alt || course.title}
+                          alt={imgObj?.alt || course.title}
                         />
                       </div>
                     );
@@ -136,7 +176,7 @@ export default async function ProductDetailPage({ params }: Props) {
                   <div 
                     className="wp-content prose prose-slate max-w-none text-slate-700 leading-relaxed"
                     style={{ '--accent': site.accentColor } as React.CSSProperties}
-                    dangerouslySetInnerHTML={{ __html: course.description || 'Full academy syllabus, mixing assignments, hands-on workstation setup, and 1-on-1 mentorship.' }}
+                    dangerouslySetInnerHTML={{ __html: (course.description || 'Full academy syllabus, mixing assignments, hands-on workstation setup, and 1-on-1 mentorship.').replace(/https?:\/\/[^\/]+\/wp-content\/uploads\//gi, '/uploads/').replace(/\/wp-content\/uploads\//gi, '/uploads/') }}
                   />
                 </div>
               </div>
@@ -206,14 +246,21 @@ export default async function ProductDetailPage({ params }: Props) {
                 </span>
                 <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight font-display mb-6" dangerouslySetInnerHTML={{ __html: product.title.rendered }} />
 
-                {featuredImage && typeof featuredImage.url === 'string' && featuredImage.url.trim() !== '' && (
-                  <div className="relative aspect-[16/9] w-full rounded-2xl overflow-hidden bg-slate-100 my-8 shadow-sm border border-slate-100">
-                    <CourseImage src={featuredImage.url} alt={featuredImage.alt} />
-                  </div>
-                )}
+                {(() => {
+                  const featuredImage = getFeaturedImage(product);
+                  let finalImgUrl = featuredImage?.url;
+                  if (!finalImgUrl || finalImgUrl.toLowerCase().includes('logo')) {
+                    finalImgUrl = getTopicFallbackImage(targetSlug, product.title.rendered);
+                  }
+                  return (
+                    <div className="relative aspect-[16/9] w-full rounded-2xl overflow-hidden bg-slate-100 my-8 shadow-sm border border-slate-100">
+                      <CourseImage src={finalImgUrl} alt={featuredImage?.alt || product.title.rendered} />
+                    </div>
+                  );
+                })()}
 
                 <h2 className="text-xl font-bold text-slate-900 mb-4 font-display">Course Overview</h2>
-                <div className="wp-content prose prose-slate max-w-none" style={{ '--accent': site.accentColor } as React.CSSProperties} dangerouslySetInnerHTML={{ __html: product.content.rendered }} />
+                <div className="wp-content prose prose-slate max-w-none" style={{ '--accent': site.accentColor } as React.CSSProperties} dangerouslySetInnerHTML={{ __html: product.content.rendered.replace(/https?:\/\/[^\/]+\/wp-content\/uploads\//gi, '/uploads/').replace(/\/wp-content\/uploads\//gi, '/uploads/') }} />
               </div>
 
               <div className="bg-white rounded-3xl p-8 sm:p-12 shadow-sm border border-slate-100/80">
@@ -308,6 +355,12 @@ export default async function ProductDetailPage({ params }: Props) {
               <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight font-display mb-6">
                 {courseTitle}
               </h1>
+              <div className="relative aspect-[16/9] w-full rounded-2xl overflow-hidden bg-slate-100 mb-8 shadow-sm border border-slate-100">
+                <CourseImage
+                  src={getTopicFallbackImage(targetSlug, courseTitle)}
+                  alt={courseTitle}
+                />
+              </div>
               <p className="text-base sm:text-lg text-slate-600 leading-relaxed mb-8">
                 {courseDesc}
               </p>

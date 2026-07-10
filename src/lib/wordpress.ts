@@ -65,12 +65,36 @@ export interface WordPressPost {
   };
 }
 
+// Utility to resolve any image or upload path to local public/uploads
+export function resolveImageUrl(urlOrPath: string | undefined | null): string | null {
+  if (!urlOrPath || typeof urlOrPath !== 'string' || urlOrPath.trim() === '') return null;
+
+  // If it already points to local /uploads/ or /media/ or /studio-hero.png
+  if (urlOrPath.startsWith('/uploads/') || urlOrPath.startsWith('/media/') || urlOrPath.startsWith('/studio-hero')) {
+    return urlOrPath;
+  }
+
+  // If it's a relative wpUploadPath (e.g., '2018/03/foo.jpg' or 'sites/2/2019/01/bar.png')
+  if (/^(sites\/\d+\/)?\d{4}\/\d{2}\//.test(urlOrPath)) {
+    return `/uploads/${urlOrPath.replace(/^\//, '')}`;
+  }
+
+  // If it contains /wp-content/uploads/ from any domain or relative path
+  const wpMatch = urlOrPath.match(/[\/a-zA-Z0-9.:_-]*\/wp-content\/uploads\/(.+)/i);
+  if (wpMatch && wpMatch[1]) {
+    return `/uploads/${wpMatch[1].split('?')[0]}`;
+  }
+
+  return urlOrPath;
+}
+
 // Utility to resolve featured image source URL from embedded data
 export function getFeaturedImage(post: WordPressPost, size: string = 'full'): { url: string; alt: string } | null {
   const media = post._embedded?.['wp:featuredmedia']?.[0];
   if (!media) return null;
 
-  const url = media.media_details?.sizes?.[size]?.source_url || media.source_url;
+  const rawUrl = media.media_details?.sizes?.[size]?.source_url || media.source_url;
+  const url = resolveImageUrl(rawUrl) || rawUrl;
   const alt = media.alt_text || post.title.rendered;
 
   return { url, alt };

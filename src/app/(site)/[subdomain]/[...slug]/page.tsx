@@ -1,4 +1,4 @@
-import { getPageBySlug, getFeaturedImage } from '@/lib/wordpress';
+import { getPageBySlug, getFeaturedImage, resolveImageUrl } from '@/lib/wordpress';
 import { SITES } from '@/lib/sites';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
@@ -9,12 +9,40 @@ import configPromise from '@/payload.config';
 import { RenderBlocks } from '@/components/RenderBlocks';
 
 const getSlugCandidates = (slug: string): string[] => {
-  if (slug === 'bespoke-private-tuition') {
-    return ['bespoke-private-tuition', 'private-instruction'];
+  const termsGroup = [
+    'terms',
+    'tc',
+    'terms-and-conditions',
+    'terms-conditions',
+    'terms-compliancy',
+    'terms-of-service',
+    'garnish-los-angeles-terms',
+    'songwriting-terms-conditions',
+  ];
+  if (termsGroup.includes(slug)) {
+    return [slug, ...termsGroup.filter((s) => s !== slug)];
   }
-  if (slug === 'private-instruction') {
-    return ['private-instruction', 'bespoke-private-tuition'];
+
+  const privacyGroup = ['privacy-policy', 'privacy'];
+  if (privacyGroup.includes(slug)) {
+    return [slug, ...privacyGroup.filter((s) => s !== slug)];
   }
+
+  const tuitionGroup = [
+    'private-instruction',
+    'bespoke-private-tuition',
+    'private-tuition',
+    'music-production-private-tuition',
+  ];
+  if (tuitionGroup.includes(slug)) {
+    return [slug, ...tuitionGroup.filter((s) => s !== slug)];
+  }
+
+  const aboutGroup = ['about', 'about-us'];
+  if (aboutGroup.includes(slug)) {
+    return [slug, ...aboutGroup.filter((s) => s !== slug)];
+  }
+
   return [slug];
 };
 
@@ -71,6 +99,8 @@ const parseWPBakery = (html: string): string => {
     let imageUrl = '/studio-hero.png';
     if (urlMatch && urlMatch[1]) {
       imageUrl = urlMatch[1].replace(/\\/g, '').replace(/['"]/g, '');
+      const resolved = resolveImageUrl(imageUrl);
+      if (resolved) imageUrl = resolved;
     }
     return `
       <div class="relative aspect-[16/9] w-full rounded-2xl overflow-hidden shadow-sm border border-slate-100 my-6 bg-slate-50">
@@ -147,6 +177,11 @@ const parseWPBakery = (html: string): string => {
   // Strip empty paragraphs that may have been created or left over
   content = content.replace(/<p>\s*<\/p>/gi, '');
 
+  // Convert any remaining /wp-content/uploads/ references directly to local /uploads/
+  content = content
+    .replace(/https?:\/\/[^\/]+\/wp-content\/uploads\//gi, '/uploads/')
+    .replace(/\/wp-content\/uploads\//gi, '/uploads/');
+
   return content;
 };
 
@@ -174,8 +209,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         ],
       },
     });
-    if (result.docs[0]) {
-      const p = result.docs[0];
+    if (result.docs.length > 0) {
+      const sortedDocs = [...result.docs].sort((a, b) => {
+        const indexA = candidates.indexOf(a.slug);
+        const indexB = candidates.indexOf(b.slug);
+        return (indexA === -1 ? 999 : indexA) - (indexB === -1 ? 999 : indexB);
+      });
+      const p = sortedDocs[0];
       return {
         title: `${p.title} | ${site?.name || 'Garnish Music Production'}`,
         description: p.seo?.metaDescription || `${p.title} at Garnish ${site?.city || ''}`,
@@ -223,8 +263,13 @@ export default async function DynamicSubdomainPage({ params }: Props) {
       },
     });
 
-    if (result.docs[0]) {
-      const payloadPage = result.docs[0];
+    if (result.docs.length > 0) {
+      const sortedDocs = [...result.docs].sort((a, b) => {
+        const indexA = candidates.indexOf(a.slug);
+        const indexB = candidates.indexOf(b.slug);
+        return (indexA === -1 ? 999 : indexA) - (indexB === -1 ? 999 : indexB);
+      });
+      const payloadPage = sortedDocs[0];
       return (
         <main className="min-h-screen py-16 px-4 sm:px-6 lg:px-8 bg-slate-50">
           <article className="max-w-4xl mx-auto bg-white rounded-3xl p-8 sm:p-14 shadow-sm border border-slate-100/80">
@@ -240,7 +285,10 @@ export default async function DynamicSubdomainPage({ params }: Props) {
 
             {(() => {
               const imgObj = typeof payloadPage.featuredImage === 'object' && payloadPage.featuredImage !== null ? payloadPage.featuredImage : null;
-              const imgUrl = imgObj?.url || (imgObj?.filename ? `/media/${imgObj.filename}` : null);
+              const rawUrl = imgObj?.wpUploadPath
+                ? `/uploads/${imgObj.wpUploadPath}`
+                : (imgObj?.url || (imgObj?.filename ? `/media/${imgObj.filename}` : null));
+              const imgUrl = resolveImageUrl(rawUrl);
               if (!imgUrl || !imgObj) return null;
               return (
                 <div className="relative aspect-[16/9] w-full rounded-2xl overflow-hidden bg-slate-100 mb-8 shadow-sm border border-slate-100">
@@ -314,7 +362,7 @@ export default async function DynamicSubdomainPage({ params }: Props) {
   }
 
   // 2. Custom Brand Fallbacks for known navigation links if not yet created in WP DB
-  if (['about', 'why-us', 'instructors', 'testimonials', 'faqs', 'partners'].includes(targetSlug)) {
+  if (['about', 'why-us', 'instructors', 'testimonials', 'faqs', 'partners', 'terms', 'tc', 'terms-and-conditions', 'privacy-policy', 'privacy'].includes(targetSlug)) {
     const titleMap: Record<string, string> = {
       about: `About Garnish ${site.city}`,
       'why-us': `Why Choose Garnish ${site.city}`,
@@ -322,6 +370,11 @@ export default async function DynamicSubdomainPage({ params }: Props) {
       testimonials: `Student Success Stories & Reviews`,
       faqs: `Frequently Asked Questions`,
       partners: `Industry Hardware & Software Partners`,
+      terms: `Terms & Conditions (${site.name})`,
+      tc: `Terms & Conditions (${site.name})`,
+      'terms-and-conditions': `Terms & Conditions (${site.name})`,
+      'privacy-policy': `Privacy Policy (${site.name})`,
+      privacy: `Privacy Policy (${site.name})`,
     };
 
     return (
