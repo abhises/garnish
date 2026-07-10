@@ -2,16 +2,30 @@
   "name": "frontend",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "generate:importmap": "payload generate:importmap",
+    "generate:types": "payload generate:types",
+    "migrate:wp": "tsx scripts/migrate-wp-to-payload.ts",
+    "postinstall": "node scripts/patch-payload-hydration.cjs"
   },
   "dependencies": {
+    "@payloadcms/db-postgres": "^3.85.2",
+    "@payloadcms/db-sqlite": "^3.85.2",
+    "@payloadcms/next": "^3.85.2",
+    "@payloadcms/richtext-lexical": "^3.85.2",
+    "dotenv": "^17.4.2",
+    "graphql": "^17.0.2",
+    "mysql2": "^3.22.6",
     "next": "16.2.10",
+    "payload": "^3.85.2",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "sharp": "^0.35.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

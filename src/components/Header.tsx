@@ -1,0 +1,356 @@
+'use client';
+
+import { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
+import { getLocalLink, type SiteConfig } from '@/lib/sites';
+
+interface HeaderProps {
+  site: SiteConfig;
+}
+
+// Exact navigation structure from live WordPress site
+const ABOUT_ITEMS = {
+  london: [
+    { label: 'Home', href: '/' },
+    { label: 'Tutors', href: '/instructors/' },
+    { label: 'Dave Garnish', href: 'https://edu.garnishmusicproduction.com/music/dave-garnish/' },
+    { label: 'Terms', href: '/terms/' },
+    { label: 'Privacy Policy', href: '/privacy-policy/' },
+  ],
+  locations: [
+    { label: 'World Home', href: 'https://edu.garnishmusicproduction.com/', code: 'edu' },
+    { label: 'BCN', href: 'https://bcn.garnishmusicproduction.com/', code: 'bcn' },
+    { label: 'BER', href: 'https://ber.garnishmusicproduction.com', code: 'ber' },
+    { label: 'LDN', href: 'https://www.garnishmusicproduction.com/', code: 'www' },
+    { label: 'LIS', href: 'https://lis.garnishmusicproduction.com/', code: 'lis' },
+    { label: 'HK', href: 'https://hk.garnishmusicproduction.com', code: 'hk' },
+    { label: 'TYO', href: 'https://tyo.garnishmusicproduction.com/', code: 'tyo' },
+    { label: 'LA', href: 'https://la.garnishmusicproduction.com/', code: 'la' },
+    { label: 'MIA', href: 'https://mia.garnishmusicproduction.com', code: 'mia' },
+    { label: 'NSH', href: 'https://nsh.garnishmusicproduction.com/', code: 'nsh' },
+    { label: 'SEA', href: 'https://sea.garnishmusicproduction.com/', code: 'sea' },
+    { label: 'SF', href: 'https://sf.garnishmusicproduction.com/', code: 'sf' },
+  ],
+};
+
+const COURSES_ITEMS = {
+  accredited: {
+    heading: 'Accredited',
+    items: [
+      { label: 'F1 USA Visa Eligible (LA)', href: 'https://la.garnishmusicproduction.com/undergraduate-business-and-music/' },
+      { label: 'BA (Hons) Pathways (BCN)', href: '/ba-pathway-courses/' },
+    ],
+  },
+  certified: {
+    heading: 'Certified',
+    items: [
+      { label: 'Garnish Industry Diploma', href: '/academy/electronic-music-production/' },
+      { label: 'Electronic Music Producer', href: '/programs/ableton-producer-program/' },
+      { label: 'International Academy', href: 'https://edu.garnishmusicproduction.com/international-academy/' },
+    ],
+  },
+  shorter: {
+    heading: 'Shorter Tactical',
+    items: [
+      { label: 'Ableton Live', href: '/courses/ableton-live-course-london/' },
+      { label: 'Hit Songwriting', href: '/courses/songwriting-course-london/' },
+      { label: 'Logic Pro', href: '/courses/logic-pro-x-course-london/' },
+      { label: 'Logic Self-Paced Online', href: 'https://www.musicgurus.com/learn/garnish-music-production-online-courses/' },
+      { label: 'Mixing & Mastering', href: '/courses/mixing-and-mastering-course-london/' },
+      { label: 'Composition', href: '/courses/composition/' },
+      { label: 'Rhythm Section Programming', href: '/courses/rhythm-section-programming/' },
+      { label: 'Vocal Production', href: '/courses/vocal-production/' },
+    ],
+  },
+  more: {
+    heading: 'More',
+    items: [
+      { label: 'Private Tuition', href: '/bespoke-private-tuition/' },
+      { label: 'Online Community', href: 'https://garn.link/discord' },
+      { label: 'Summer Camp', href: '/courses/school-summer-camp/' },
+      { label: 'Gift Certificate', href: 'https://edu.garnishmusicproduction.com/gift/' },
+      { label: 'Live Online', href: 'https://edu.garnishmusicproduction.com/live-online/' },
+    ],
+  },
+};
+
+export default function Header({ site }: HeaderProps) {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [activeMenu, setActiveMenu] = useState<string | null>(null);
+  const menuTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Close mobile menu on resize
+  useEffect(() => {
+    const handler = () => { if (window.innerWidth >= 1024) setMobileOpen(false); };
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, []);
+
+  const openMenu = (menu: string) => {
+    if (menuTimeout.current) clearTimeout(menuTimeout.current);
+    setActiveMenu(menu);
+  };
+
+  const closeMenu = () => {
+    menuTimeout.current = setTimeout(() => setActiveMenu(null), 150);
+  };
+
+  const isExternal = (href: string) => href.startsWith('http');
+
+  const renderLink = (href: string, label: string, className: string) => {
+    const localHref = getLocalLink(href);
+    if (isExternal(localHref)) {
+      return (
+        <a href={localHref} className={className} target="_blank" rel="noopener noreferrer">
+          {label}
+        </a>
+      );
+    }
+    return <Link href={localHref} className={className}>{label}</Link>;
+  };
+
+  return (
+    <header className="sticky top-0 z-50 bg-white border-b border-slate-200">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-[70px]">
+          {/* Logo - matching the Garnish block lettering */}
+          <Link href="/" className="flex items-center gap-2 shrink-0">
+            <span className="text-[22px] font-black tracking-[0.04em] text-slate-900 uppercase"
+              style={{ fontFamily: 'var(--font-space-grotesk), sans-serif' }}>
+              GAR
+              <span className="relative">
+                N
+                <span className="absolute left-[45%] top-[38%] w-[3px] h-[35%] bg-emerald-500 -translate-x-1/2" />
+              </span>
+              ISH
+            </span>
+            {site.subdomain !== 'www' && (
+              <span className="text-[9px] font-bold uppercase tracking-[0.25em] text-slate-400 ml-1 self-end mb-[2px]">
+                {site.city}
+              </span>
+            )}
+          </Link>
+
+          {/* Desktop Navigation */}
+          <nav className="hidden lg:flex items-center gap-0">
+            {/* About Dropdown */}
+            <div
+              className="relative"
+              onMouseEnter={() => openMenu('about')}
+              onMouseLeave={closeMenu}
+            >
+              <button className="flex items-center gap-1 px-4 py-6 text-[13px] font-semibold text-slate-700 hover:text-[#c0392b] uppercase tracking-wide transition-colors">
+                About
+                <svg className="w-3 h-3 ml-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {activeMenu === 'about' && (
+                <div
+                  className="absolute top-full left-0 pt-0 w-[420px] z-50"
+                  onMouseEnter={() => openMenu('about')}
+                  onMouseLeave={closeMenu}
+                >
+                  <div className="bg-white rounded-b-lg shadow-xl border border-t-0 border-slate-200 p-6">
+                    <div className="grid grid-cols-2 gap-8">
+                      <div>
+                        <h4 className="text-[10px] font-bold uppercase tracking-widest text-[#c0392b] mb-3">
+                          {site.city}
+                        </h4>
+                        <ul className="space-y-2">
+                          {ABOUT_ITEMS.london.map((item) => (
+                            <li key={item.href}>
+                              {renderLink(item.href, item.label,
+                                'block text-[13px] text-slate-600 hover:text-[#c0392b] transition-colors'
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div>
+                        <h4 className="text-[10px] font-bold uppercase tracking-widest text-[#c0392b] mb-3">
+                          Locations
+                        </h4>
+                        <ul className="space-y-1.5">
+                          {ABOUT_ITEMS.locations.map((item) => (
+                            <li key={item.code}>
+                              <a
+                                href={getLocalLink(item.href)}
+                                className={`block text-[13px] transition-colors ${
+                                  site.subdomain === item.code
+                                    ? 'text-[#c0392b] font-semibold'
+                                    : 'text-slate-600 hover:text-[#c0392b]'
+                                }`}
+                              >
+                                {item.label}
+                              </a>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Music Production Courses Dropdown */}
+            <div
+              className="relative"
+              onMouseEnter={() => openMenu('courses')}
+              onMouseLeave={closeMenu}
+            >
+              <button className="flex items-center gap-1 px-4 py-6 text-[13px] font-semibold text-slate-700 hover:text-[#c0392b] uppercase tracking-wide transition-colors">
+                Music Production Courses
+                <svg className="w-3 h-3 ml-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {activeMenu === 'courses' && (
+                <div
+                  className="absolute top-full left-1/2 -translate-x-1/2 pt-0 w-[720px] z-50"
+                  onMouseEnter={() => openMenu('courses')}
+                  onMouseLeave={closeMenu}
+                >
+                  <div className="bg-white rounded-b-lg shadow-xl border border-t-0 border-slate-200 p-6">
+                    <div className="grid grid-cols-4 gap-6">
+                      {Object.values(COURSES_ITEMS).map((col) => (
+                        <div key={col.heading}>
+                          <h4 className="text-[10px] font-bold uppercase tracking-widest text-[#c0392b] mb-3">
+                            {col.heading}
+                          </h4>
+                          <ul className="space-y-2">
+                            {col.items.map((item) => (
+                              <li key={item.href}>
+                                {renderLink(item.href, item.label,
+                                  'block text-[13px] text-slate-600 hover:text-[#c0392b] transition-colors leading-snug'
+                                )}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Contact */}
+            <Link
+              href="/contact-map/"
+              className="px-4 py-6 text-[13px] font-semibold text-slate-700 hover:text-[#c0392b] uppercase tracking-wide transition-colors"
+            >
+              Contact
+            </Link>
+          </nav>
+
+          {/* Right Side: Cart + Mobile Toggle */}
+          <div className="flex items-center gap-2">
+            {/* Cart Icon */}
+            <Link
+              href="/cart/"
+              className="relative p-2 text-slate-600 hover:text-[#c0392b] transition-colors"
+              aria-label="Cart"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" />
+              </svg>
+              <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[#c0392b] text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                0
+              </span>
+            </Link>
+
+            {/* Mobile Menu Toggle */}
+            <button
+              onClick={() => setMobileOpen(!mobileOpen)}
+              className="lg:hidden p-2 text-slate-700 hover:text-[#c0392b] transition-colors"
+              aria-label="Toggle menu"
+            >
+              {mobileOpen ? (
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : (
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Menu */}
+      {mobileOpen && (
+        <div className="lg:hidden bg-white border-t border-slate-200 shadow-xl max-h-[80vh] overflow-y-auto">
+          <div className="px-4 py-4 space-y-1">
+            {/* About Section */}
+            <div className="border-b border-slate-100 pb-3 mb-3">
+              <p className="px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-[#c0392b]">{site.city}</p>
+              {ABOUT_ITEMS.london.map((item) => {
+                const localHref = getLocalLink(item.href);
+                return (
+                  <div key={item.href}>
+                    {isExternal(localHref) ? (
+                      <a href={localHref} className="block px-3 py-2 text-sm text-slate-600" onClick={() => setMobileOpen(false)}>
+                        {item.label}
+                      </a>
+                    ) : (
+                      <Link href={localHref} className="block px-3 py-2 text-sm text-slate-600" onClick={() => setMobileOpen(false)}>
+                        {item.label}
+                      </Link>
+                    )}
+                  </div>
+                );
+              })}
+
+              <p className="px-3 py-2 mt-2 text-[10px] font-bold uppercase tracking-widest text-[#c0392b]">Locations</p>
+              <div className="grid grid-cols-3 gap-1 px-3">
+                {ABOUT_ITEMS.locations.map((item) => (
+                  <a key={item.code} href={getLocalLink(item.href)} className="text-sm text-slate-600 py-1 hover:text-[#c0392b]">
+                    {item.label}
+                  </a>
+                ))}
+              </div>
+            </div>
+
+            {/* Courses Section */}
+            {Object.values(COURSES_ITEMS).map((col) => (
+              <div key={col.heading} className="pb-2">
+                <p className="px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-[#c0392b]">{col.heading}</p>
+                {col.items.map((item) => {
+                  const localHref = getLocalLink(item.href);
+                  return (
+                    <div key={item.href}>
+                      {isExternal(localHref) ? (
+                        <a href={localHref} className="block px-3 py-2 text-sm text-slate-600" onClick={() => setMobileOpen(false)}>
+                          {item.label}
+                        </a>
+                      ) : (
+                        <Link href={localHref} className="block px-3 py-2 text-sm text-slate-600" onClick={() => setMobileOpen(false)}>
+                          {item.label}
+                        </Link>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+
+            {/* Contact */}
+            <Link
+              href="/contact-map/"
+              className="block px-3 py-3 text-sm font-semibold text-slate-800"
+              onClick={() => setMobileOpen(false)}
+            >
+              Contact
+            </Link>
+          </div>
+        </div>
+      )}
+    </header>
+  );
+}
