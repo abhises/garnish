@@ -7,8 +7,20 @@ import type { Metadata } from 'next';
 import { getPayload } from 'payload';
 import configPromise from '@/payload.config';
 import { RenderBlocks } from '@/components/RenderBlocks';
+import ContactPage from '../contact/page';
 
 const getSlugCandidates = (slug: string): string[] => {
+  const contactGroup = [
+    'contact-map',
+    'contact',
+    'contact-us',
+    'contact-dave',
+    'music-production-school-contact',
+    'songwriting-school-contact',
+  ];
+  if (contactGroup.includes(slug) || slug.includes('contact')) {
+    return [slug, ...contactGroup.filter((s) => s !== slug)];
+  }
   const termsGroup = [
     'terms',
     'tc',
@@ -181,6 +193,14 @@ const parseWPBakery = (html: string): string => {
   content = content
     .replace(/https?:\/\/[^\/]+\/wp-content\/uploads\//gi, '/uploads/')
     .replace(/\/wp-content\/uploads\//gi, '/uploads/');
+
+  // 5. Force any WPBakery column wrapping mkd-testimonials to occupy 100% full width instead of 25%/33%
+  if (content.includes('mkd-testimonials') || content.includes('mkd-testimonial')) {
+    content = content.replace(
+      /<div class="[^"]*md:w-\[calc\([^)]+\)\][^"]*">([\s\S]*?mkd-testimonials[\s\S]*?)<\/div>/gi,
+      '<div class="w-full flex flex-col justify-center my-6">$1</div>'
+    );
+  }
 
   return content;
 };
@@ -424,6 +444,12 @@ export default async function DynamicSubdomainPage({ params }: Props) {
     );
   }
 
-  // 3. If neither WP page nor known navigation slug, 404
+  // 3. If contact-related slug not found in DB, directly render Contact Page component
+  if (targetSlug.includes('contact') || ['contact-map', 'contact-us', 'get-in-touch', 'location', 'map'].includes(targetSlug)) {
+    return <ContactPage params={params} />;
+  }
+
+  // 4. If neither WP page nor known navigation slug, 404
   notFound();
 }
+

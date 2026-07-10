@@ -15,9 +15,10 @@ import { Media } from './collections/Media';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Use Postgres adapter if DATABASE_URI starts with postgres:// or postgresql://,
+// Use Postgres adapter if DATABASE_URI or DATABASE_URL starts with postgres:// or postgresql://,
 // otherwise default to SQLite for zero-config local development and testing.
-const isPostgres = process.env.DATABASE_URI?.startsWith('postgres://') || process.env.DATABASE_URI?.startsWith('postgresql://');
+const dbUri = process.env.DATABASE_URI || process.env.DATABASE_URL || '';
+const isPostgres = dbUri.startsWith('postgres://') || dbUri.startsWith('postgresql://');
 
 export default buildConfig({
   admin: {
@@ -42,12 +43,13 @@ export default buildConfig({
   db: isPostgres
     ? postgresAdapter({
         pool: {
-          connectionString: process.env.DATABASE_URI,
+          connectionString: dbUri,
         },
+        push: true,
       })
     : sqliteAdapter({
         client: {
-          url: process.env.DATABASE_URI || 'file:./garnish-local.db',
+          url: dbUri || 'file:./garnish-local.db',
         },
       }),
   sharp,

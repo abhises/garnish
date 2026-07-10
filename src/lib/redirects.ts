@@ -129,6 +129,20 @@ export const RANK_MATH_REDIRECTS: RedirectRule[] = [
     "subdomain": "www"
   },
   {
+    "source": "music/dave-garnish/",
+    "destination": "/courses/dave-garnish/",
+    "statusCode": 301,
+    "comparison": "exact",
+    "subdomain": "edu"
+  },
+  {
+    "source": "music/dave-garnish/",
+    "destination": "/courses/dave-garnish/",
+    "statusCode": 301,
+    "comparison": "exact",
+    "subdomain": "www"
+  },
+  {
     "source": "blog/courses/electronic-emp/",
     "destination": "https://www.garnishmusicproduction.com/programs/ableton-producer-program/",
     "statusCode": 301,

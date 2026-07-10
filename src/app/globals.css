@@ -262,48 +262,49 @@ body {
 
 /* Testimonial styling */
 .mkd-testimonials-holder {
-  margin: 3rem 0 !important;
+  margin: 3.5rem 0 !important;
   width: 100% !important;
 }
 
 .mkd-testimonials {
   display: grid !important;
-  grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
-  gap: 1.5rem !important;
-}
-
-@media (min-width: 768px) {
-  .mkd-testimonials {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  }
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)) !important;
+  gap: 2rem !important;
+  width: 100% !important;
 }
 
 .mkd-testimonial-content {
-  background-color: #f8fafc !important;
-  border: 1px solid #e2e8f0 !important;
-  border-radius: 1.25rem !important;
-  padding: 2rem !important;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+  background: linear-gradient(145deg, #ffffff, #f8fafc) !important;
+  border: 1px solid rgba(226, 232, 240, 0.8) !important;
+  border-radius: 1.5rem !important;
+  padding: 2.25rem !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05) !important;
   display: flex !important;
   flex-direction: column !important;
   justify-content: space-between !important;
-  margin-bottom: 1.5rem !important;
+  height: 100% !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.mkd-testimonial-content:hover {
+  transform: translateY(-3px) !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08) !important;
 }
 
 .mkd-testimonial-text-holder h4.mkd-testimonial-text {
-  font-size: 0.95rem !important;
-  line-height: 1.6 !important;
-  color: #475569 !important;
+  font-size: 1.05rem !important;
+  line-height: 1.7 !important;
+  color: #334155 !important;
   font-weight: 400 !important;
   font-style: italic !important;
-  margin: 0 0 1.5rem 0 !important;
+  margin: 0 0 1.75rem 0 !important;
 }
 
 .mkd-testimonial-author h5.mkd-testimonial-author-text {
   font-size: 0.875rem !important;
-  font-weight: 600 !important;
+  font-weight: 700 !important;
   color: #0f172a !important;
   margin: 0 !important;
   text-transform: uppercase !important;
-  letter-spacing: 0.05em !important;
+  letter-spacing: 0.08em !important;
 }

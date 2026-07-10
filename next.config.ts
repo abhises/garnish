@@ -12,6 +12,12 @@ const nextConfig: NextConfig = {
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     remotePatterns: [
+      // Cloudinary CDN for all uploaded images and media assets
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+        pathname: '/s7pus8t5/**',
+      },
       // Wildcard covers all Garnish Multisite subdomains automatically over HTTPS and HTTP
       {
         protocol: 'https',
