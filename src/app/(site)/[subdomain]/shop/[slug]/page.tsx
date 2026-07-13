@@ -25,6 +25,7 @@ interface Props {
 
 const getTopicFallbackImage = (slugStr: string, titleStr?: string): string => {
   const s = (slugStr + ' ' + (titleStr || '')).toLowerCase();
+  if (s.includes('dave') || s.includes('garnish')) return '/uploads/sites/8/2016/09/DG-800.jpg';
   if (s.includes('songwrit')) return '/uploads/2018/05/20130809-DSC_9511.jpg';
   if (s.includes('ableton')) return '/uploads/sites/5/2018/02/Ableton-Live-10-Release_3_web.jpg';
   if (s.includes('logic')) return '/uploads/2018/03/LogClass-800.jpg';
