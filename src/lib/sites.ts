@@ -290,6 +290,11 @@ export function getLocalLink(url: string): string {
     return url;
   }
 
+  // Keep dave-garnish on relative local path in development mode so it never redirects away from current local server
+  if (url.includes('dave-garnish')) {
+    return '/courses/dave-garnish/';
+  }
+
   try {
     if (url.startsWith('https://') && url.includes('garnishmusicproduction.com')) {
       const parsedUrl = new URL(url);
