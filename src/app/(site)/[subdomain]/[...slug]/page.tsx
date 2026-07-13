@@ -307,10 +307,13 @@ export default async function DynamicSubdomainPage({ params }: Props) {
 
             {(() => {
               const imgObj = typeof payloadPage.featuredImage === 'object' && payloadPage.featuredImage !== null ? payloadPage.featuredImage : null;
-              const rawUrl = imgObj?.wpUploadPath
-                ? `/uploads/${imgObj.wpUploadPath}`
-                : (imgObj?.url || (imgObj?.filename ? `/media/${imgObj.filename}` : null));
-              const imgUrl = resolveImageUrl(rawUrl);
+              let imgUrl = imgObj?.url?.startsWith('http') ? imgObj.url : null;
+              if (!imgUrl) {
+                const rawUrl = imgObj?.wpUploadPath
+                  ? `/uploads/${imgObj.wpUploadPath}`
+                  : (imgObj?.url || (imgObj?.filename ? `/media/${imgObj.filename}` : null));
+                imgUrl = resolveImageUrl(rawUrl);
+              }
               if (!imgUrl || !imgObj) return null;
               return (
                 <div className="relative aspect-[16/9] w-full rounded-2xl overflow-hidden bg-slate-100 mb-8 shadow-sm border border-slate-100">
@@ -386,9 +389,19 @@ export default async function DynamicSubdomainPage({ params }: Props) {
   }
 
   // 2. Custom Brand Fallbacks for known navigation links if not yet created in WP DB
-  if (['about', 'why-us', 'instructors', 'testimonials', 'faqs', 'partners', 'terms', 'tc', 'terms-and-conditions', 'privacy-policy', 'privacy'].includes(targetSlug)) {
+  const brandFallbackSlugs = [
+    'about', 'about-us', 'why-us', 'instructors', 'testimonials', 'faqs', 'partners',
+    'terms', 'tc', 'terms-and-conditions', 'terms-conditions', 'compliancy', 'terms-compliancy',
+    'privacy-policy', 'privacy',
+    'bespoke-private-tuition', 'private-tuition', 'private-instruction',
+    'music-production-private-tuition', 'private-lessons',
+    'open-house', 'open-day', 'live-online', 'online-courses',
+    'international-academy', 'gift', 'summer-camp',
+  ];
+  if (brandFallbackSlugs.includes(targetSlug)) {
     const titleMap: Record<string, string> = {
       about: `About Garnish ${site.city}`,
+      'about-us': `About Garnish ${site.city}`,
       'why-us': `Why Choose Garnish ${site.city}`,
       instructors: `Our World-Class Instructors`,
       testimonials: `Student Success Stories & Reviews`,
@@ -397,8 +410,23 @@ export default async function DynamicSubdomainPage({ params }: Props) {
       terms: `Terms & Conditions (${site.name})`,
       tc: `Terms & Conditions (${site.name})`,
       'terms-and-conditions': `Terms & Conditions (${site.name})`,
+      'terms-conditions': `Terms & Conditions (${site.name})`,
+      compliancy: `Compliancy (${site.name})`,
+      'terms-compliancy': `Compliancy & Terms (${site.name})`,
       'privacy-policy': `Privacy Policy (${site.name})`,
       privacy: `Privacy Policy (${site.name})`,
+      'bespoke-private-tuition': `Private Tuition & Bespoke Instruction`,
+      'private-tuition': `Private Tuition & Bespoke Instruction`,
+      'private-instruction': `Private Tuition & Bespoke Instruction`,
+      'music-production-private-tuition': `Private Tuition & Bespoke Instruction`,
+      'private-lessons': `Private Lessons at Garnish ${site.city}`,
+      'open-house': `Open House — Garnish ${site.city}`,
+      'open-day': `Open Day — Garnish ${site.city}`,
+      'live-online': `Live Online Courses — Garnish`,
+      'online-courses': `Online Music Production Courses`,
+      'international-academy': `International Academy`,
+      gift: `Gift Certificates — Garnish`,
+      'summer-camp': `Summer Camp — Garnish ${site.city}`,
     };
 
     return (
@@ -453,7 +481,39 @@ export default async function DynamicSubdomainPage({ params }: Props) {
     return <ContactPage params={params} />;
   }
 
-  // 4. If neither WP page nor known navigation slug, 404
-  notFound();
+  // 4. Generic branded fallback for any unrecognised slug — avoids a raw 404
+  return (
+    <main className="min-h-screen py-16 px-4 sm:px-6 lg:px-8 bg-slate-50">
+      <div className="max-w-4xl mx-auto bg-white rounded-3xl p-8 sm:p-14 shadow-sm border border-slate-100/80 text-center">
+        <span
+          className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest mb-4"
+          style={{ color: site.accentColor, backgroundColor: `${site.accentColor}10` }}
+        >
+          Garnish {site.city}
+        </span>
+        <h1 className="text-3xl sm:text-5xl font-extrabold text-slate-900 tracking-tight font-display mb-6">
+          {targetSlug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+        </h1>
+        <p className="text-base text-slate-500 max-w-2xl mx-auto leading-relaxed mb-10">
+          This page is coming soon for Garnish {site.city}. In the meantime, explore our full range of courses or contact our admissions team.
+        </p>
+        <div className="flex justify-center gap-4">
+          <Link
+            href="/"
+            className="px-6 py-3 rounded-xl text-sm font-bold text-white shadow-md transition-all"
+            style={{ backgroundColor: site.accentColor }}
+          >
+            Back to Home
+          </Link>
+          <Link
+            href="/contact"
+            className="px-6 py-3 rounded-xl text-sm font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition-all"
+          >
+            Contact Admissions
+          </Link>
+        </div>
+      </div>
+    </main>
+  );
 }
 

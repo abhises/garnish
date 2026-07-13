@@ -58,34 +58,56 @@ const TESTIMONIALS = [
   },
 ];
 
-// Partner brand logos from the live site (WordPress CDN)
+// Partner brand logos — served from Cloudinary garnish-uploads
+const _CLOUDINARY = 'https://res.cloudinary.com/s7pus8t5/image/upload/garnish-uploads';
 const PARTNERS = [
-  { name: 'Ableton', src: 'https://www.garnishmusicproduction.com/wp-content/uploads/2025/02/1.png' },
-  { name: 'iZotope', src: 'https://www.garnishmusicproduction.com/wp-content/uploads/2025/02/2-copy-1.png' },
-  { name: 'Beatport', src: 'https://www.garnishmusicproduction.com/wp-content/uploads/2025/02/3.png' },
-  { name: 'Arturia', src: 'https://www.garnishmusicproduction.com/wp-content/uploads/2025/02/4-1.png' },
-  { name: 'Pioneer DJ', src: 'https://www.garnishmusicproduction.com/wp-content/uploads/2025/02/svgexport-1-1.png' },
-  { name: 'AlphaTheta', src: 'https://www.garnishmusicproduction.com/wp-content/uploads/2025/02/AlphaTheta-1.png' },
-  { name: 'Soundtoys', src: 'https://www.garnishmusicproduction.com/wp-content/uploads/2025/02/logo-1.png' },
-  { name: 'Auto-Tune', src: 'https://www.garnishmusicproduction.com/wp-content/uploads/2025/02/Auto-Tune_white_logo_with_green_A_wave-1.png' },
-  { name: 'FL Studio', src: 'https://www.garnishmusicproduction.com/wp-content/uploads/2025/02/Image-Line.png' },
-  { name: 'Pitch Innovations', src: 'https://www.garnishmusicproduction.com/wp-content/uploads/2025/02/logo-2.png' },
-  { name: 'Native Instruments', src: 'https://www.garnishmusicproduction.com/wp-content/uploads/2025/02/Native_Instruments_logo_2023.svg_-1.png' },
-  { name: 'Apple', src: 'https://www.garnishmusicproduction.com/wp-content/uploads/2025/02/apple.png' },
+  { name: 'Ableton', src: `${_CLOUDINARY}/2025/02/1.png` },
+  { name: 'iZotope', src: `${_CLOUDINARY}/2025/02/2-copy-1.png` },
+  { name: 'Beatport', src: `${_CLOUDINARY}/2025/02/3.png` },
+  { name: 'Arturia', src: `${_CLOUDINARY}/2025/02/4-1.png` },
+  { name: 'Pioneer DJ', src: `${_CLOUDINARY}/2025/02/svgexport-1-1.png` },
+  { name: 'AlphaTheta', src: `${_CLOUDINARY}/2025/02/AlphaTheta-1.png` },
+  { name: 'Soundtoys', src: `${_CLOUDINARY}/2025/02/logo-1.png` },
+  { name: 'Auto-Tune', src: `${_CLOUDINARY}/2025/02/Auto-Tune_white_logo_with_green_A_wave-1.png` },
+  { name: 'FL Studio', src: `${_CLOUDINARY}/2025/02/Image-Line.png` },
+  { name: 'Pitch Innovations', src: `${_CLOUDINARY}/2025/02/logo-2.png` },
+  { name: 'Native Instruments', src: `${_CLOUDINARY}/2025/02/Native_Instruments_logo_2023.svg_-1.png` },
+  { name: 'Apple', src: `${_CLOUDINARY}/2025/02/apple.png` },
 ];
 
-// Topic-based fallback images for products missing featured images
+// Topic-based fallback images for products missing featured images — all served from Cloudinary
+const CLOUDINARY_BASE = 'https://res.cloudinary.com/s7pus8t5/image/upload/garnish-uploads';
+
 const getTopicFallbackImage = (slugStr: string, titleStr?: string): string => {
   const s = (slugStr + ' ' + (titleStr || '')).toLowerCase();
-  if (s.includes('songwrit')) return 'https://www.garnishmusicproduction.com/wp-content/uploads/2018/04/Hit-Songwriting-Course-London-800.jpg';
-  if (s.includes('ableton')) return 'https://www.garnishmusicproduction.com/wp-content/uploads/2018/04/Ableton-Live-10-production-course-2-300x163.jpg';
-  if (s.includes('logic')) return 'https://www.garnishmusicproduction.com/wp-content/uploads/2018/03/LogClass-800.jpg';
-  if (s.includes('dj') || s.includes('turntab')) return 'https://www.garnishmusicproduction.com/wp-content/uploads/sites/7/2025/01/PUSH-3-Blur-Dark.png';
-  if (s.includes('mix') || s.includes('master')) return 'https://www.garnishmusicproduction.com/wp-content/uploads/sites/7/2025/01/Girl-in-Headphones-Blur.png';
-  if (s.includes('camp') || s.includes('summer')) return 'https://www.garnishmusicproduction.com/wp-content/uploads/2020/02/Garnish21.jpg';
-  if (s.includes('sound') && s.includes('design')) return 'https://www.garnishmusicproduction.com/wp-content/uploads/sites/7/2020/03/Online-Music-Production-Courses.jpg';
-  if (s.includes('producer') || s.includes('production')) return 'https://www.garnishmusicproduction.com/wp-content/uploads/sites/7/2020/03/Online-Music-Production-Courses.jpg';
-  return 'https://www.garnishmusicproduction.com/wp-content/uploads/sites/3/2021/09/28afbf82-4126-434a-81cc-853f0216e1f0.jpg';
+  // Named artist / instructor
+  if (s.includes('dave') || (s.includes('garnish') && !s.includes('music'))) return `${CLOUDINARY_BASE}/sites/8/2016/09/DG-800.jpg`;
+  // Songwriting / K-pop
+  if (s.includes('songwrit') || s.includes('k-pop') || s.includes('kpop')) return `${CLOUDINARY_BASE}/2018/05/20130809-DSC_9511.jpg`;
+  // Ableton Live
+  if (s.includes('ableton')) return `${CLOUDINARY_BASE}/sites/5/2018/02/Ableton-Live-10-Release_3_web.jpg`;
+  // Logic Pro
+  if (s.includes('logic')) return `${CLOUDINARY_BASE}/2018/03/LogClass-800.jpg`;
+  // FL Studio
+  if (s.includes('fl-studio') || s.includes('fl studio') || s.includes('fruity')) return `${CLOUDINARY_BASE}/sites/7/2020/03/Online-Music-Production-Courses.jpg`;
+  // Pro Tools
+  if (s.includes('pro-tools') || s.includes('pro tools')) return `${CLOUDINARY_BASE}/sites/7/2025/01/Girl-in-Headphones-Blur.png`;
+  // DJ / Turntablist / Rekordbox
+  if (s.includes('dj') || s.includes('turntab') || s.includes('rekordbox')) return `${CLOUDINARY_BASE}/sites/7/2025/01/PUSH-3-Blur-Dark.png`;
+  // Mixing / Mastering / Post Production
+  if (s.includes('mix') || s.includes('master') || s.includes('post-prod') || s.includes('post prod')) return `${CLOUDINARY_BASE}/sites/7/2025/01/Girl-in-Headphones-Blur.png`;
+  // Vocal Production
+  if (s.includes('vocal')) return `${CLOUDINARY_BASE}/2020/02/Garnish26-1.jpg`;
+  // Composition / Rhythm Section / Radio / Podcast / Arturia
+  if (s.includes('compos') || s.includes('rhythm') || s.includes('radio') || s.includes('podcast') || s.includes('arturia')) return `${CLOUDINARY_BASE}/2020/02/Garnish21-1.jpg`;
+  // Sound Design / Synthesis
+  if (s.includes('sound') && (s.includes('design') || s.includes('synth'))) return `${CLOUDINARY_BASE}/sites/7/2020/03/Online-Music-Production-Courses.jpg`;
+  // Summer Camp / School
+  if (s.includes('camp') || s.includes('summer') || s.includes('school')) return `${CLOUDINARY_BASE}/2020/02/Garnish21.jpg`;
+  // Generic production / electronic / program
+  if (s.includes('producer') || s.includes('production') || s.includes('electronic') || s.includes('program')) return `${CLOUDINARY_BASE}/sites/7/2020/03/Online-Music-Production-Courses.jpg`;
+  // Default Garnish studio
+  return `${CLOUDINARY_BASE}/sites/3/2021/09/28afbf82-4126-434a-81cc-853f0216e1f0.jpg`;
 };
 
 // Shorter courses matching live site
@@ -248,10 +270,15 @@ export default async function SubdomainPage({ params }: SubdomainPageProps) {
                   href={course.href}
                   className="group block bg-white border border-slate-200 hover:border-[#c0392b] transition-all overflow-hidden"
                 >
-                  <div className="relative aspect-[4/3] bg-slate-100">
-                    <div className="absolute inset-0 bg-gradient-to-br from-slate-200 to-slate-100 flex items-center justify-center">
-                      <span className="text-4xl opacity-20">🎵</span>
-                    </div>
+                  <div className="relative aspect-[4/3] bg-slate-100 overflow-hidden">
+                    <Image
+                      src={resolveImageUrl(getTopicFallbackImage(course.href, course.title)) || getTopicFallbackImage(course.href, course.title)}
+                      alt={course.title}
+                      fill
+                      unoptimized={true}
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
                   </div>
                   <div className="p-5">
                     <span className="text-[10px] font-bold uppercase tracking-widest text-[#c0392b]">

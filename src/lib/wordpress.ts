@@ -81,21 +81,21 @@ export function resolveImageUrl(urlOrPath: string | undefined | null): string | 
     return `https://res.cloudinary.com/${cloudName}/image/upload/garnish-media/${filename}`;
   }
 
-  // If it points to /uploads/ or wp-content/uploads, route to live WordPress CDN when local files are removed
+  // If it points to /uploads/ or wp-content/uploads, route to Cloudinary garnish-uploads
   if (urlOrPath.startsWith('/uploads/')) {
     const relativePath = urlOrPath.replace(/^\/uploads\//, '');
-    return `https://www.garnishmusicproduction.com/wp-content/uploads/${relativePath}`;
+    return `https://res.cloudinary.com/${cloudName}/image/upload/garnish-uploads/${relativePath}`;
   }
 
   // If it's a relative wpUploadPath (e.g., '2018/03/foo.jpg' or 'sites/2/2019/01/bar.png')
   if (/^(sites\/\d+\/)?\d{4}\/\d{2}\//.test(urlOrPath)) {
-    return `https://www.garnishmusicproduction.com/wp-content/uploads/${urlOrPath.replace(/^\//, '')}`;
+    return `https://res.cloudinary.com/${cloudName}/image/upload/garnish-uploads/${urlOrPath.replace(/^\//, '')}`;
   }
 
   // If it contains /wp-content/uploads/ from any domain or relative path
   const wpMatch = urlOrPath.match(/[\/a-zA-Z0-9.:_-]*\/wp-content\/uploads\/(.+)/i);
   if (wpMatch && wpMatch[1]) {
-    return `https://www.garnishmusicproduction.com/wp-content/uploads/${wpMatch[1].split('?')[0]}`;
+    return `https://res.cloudinary.com/${cloudName}/image/upload/garnish-uploads/${wpMatch[1].split('?')[0]}`;
   }
 
   return urlOrPath;

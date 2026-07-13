@@ -23,17 +23,38 @@ interface Props {
   }>;
 }
 
+const CLOUDINARY_BASE = 'https://res.cloudinary.com/s7pus8t5/image/upload/garnish-uploads';
+
 const getTopicFallbackImage = (slugStr: string, titleStr?: string): string => {
   const s = (slugStr + ' ' + (titleStr || '')).toLowerCase();
-  if (s.includes('dave') || s.includes('garnish')) return '/uploads/sites/8/2016/09/DG-800.jpg';
-  if (s.includes('songwrit')) return '/uploads/2018/05/20130809-DSC_9511.jpg';
-  if (s.includes('ableton')) return '/uploads/sites/5/2018/02/Ableton-Live-10-Release_3_web.jpg';
-  if (s.includes('logic')) return '/uploads/2018/03/LogClass-800.jpg';
-  if (s.includes('dj') || s.includes('turntab')) return '/uploads/sites/7/2025/01/PUSH-3-Blur-Dark.png';
-  if (s.includes('mix') || s.includes('master')) return '/uploads/sites/7/2025/01/Girl-in-Headphones-Blur.png';
-  if (s.includes('camp') || s.includes('summer')) return '/uploads/2020/02/Garnish21.jpg';
-  if (s.includes('producer') || s.includes('production')) return '/uploads/sites/7/2020/03/Online-Music-Production-Courses.jpg';
-  return '/uploads/sites/3/2021/09/28afbf82-4126-434a-81cc-853f0216e1f0.jpg';
+  // Named artist / instructor
+  if (s.includes('dave') || (s.includes('garnish') && !s.includes('music'))) return `${CLOUDINARY_BASE}/sites/8/2016/09/DG-800.jpg`;
+  // Songwriting
+  if (s.includes('songwrit') || s.includes('k-pop') || s.includes('kpop')) return `${CLOUDINARY_BASE}/2018/05/20130809-DSC_9511.jpg`;
+  // Ableton
+  if (s.includes('ableton')) return `${CLOUDINARY_BASE}/sites/5/2018/02/Ableton-Live-10-Release_3_web.jpg`;
+  // Logic Pro
+  if (s.includes('logic')) return `${CLOUDINARY_BASE}/2018/03/LogClass-800.jpg`;
+  // FL Studio
+  if (s.includes('fl-studio') || s.includes('fl studio') || s.includes('fruity')) return `${CLOUDINARY_BASE}/sites/7/2020/03/Online-Music-Production-Courses.jpg`;
+  // Pro Tools
+  if (s.includes('pro-tools') || s.includes('pro tools')) return `${CLOUDINARY_BASE}/sites/7/2025/01/Girl-in-Headphones-Blur.png`;
+  // DJ / Turntablist / Rekordbox
+  if (s.includes('dj') || s.includes('turntab') || s.includes('rekordbox')) return `${CLOUDINARY_BASE}/sites/7/2025/01/PUSH-3-Blur-Dark.png`;
+  // Mixing / Mastering / Post Production
+  if (s.includes('mix') || s.includes('master') || s.includes('post-prod') || s.includes('post prod')) return `${CLOUDINARY_BASE}/sites/7/2025/01/Girl-in-Headphones-Blur.png`;
+  // Vocal Production
+  if (s.includes('vocal')) return `${CLOUDINARY_BASE}/2020/02/Garnish26-1.jpg`;
+  // Composition / Rhythm / Radio / Podcast / Arturia
+  if (s.includes('compos') || s.includes('rhythm') || s.includes('radio') || s.includes('podcast') || s.includes('arturia')) return `${CLOUDINARY_BASE}/2020/02/Garnish21-1.jpg`;
+  // Sound Design / Synthesis
+  if (s.includes('sound') && (s.includes('design') || s.includes('synth'))) return `${CLOUDINARY_BASE}/sites/7/2020/03/Online-Music-Production-Courses.jpg`;
+  // Summer Camp / School Programs
+  if (s.includes('camp') || s.includes('summer') || s.includes('school')) return `${CLOUDINARY_BASE}/2020/02/Garnish21.jpg`;
+  // Generic production / producer
+  if (s.includes('producer') || s.includes('production') || s.includes('electronic') || s.includes('program')) return `${CLOUDINARY_BASE}/sites/7/2020/03/Online-Music-Production-Courses.jpg`;
+  // Default Garnish studio shot
+  return `${CLOUDINARY_BASE}/sites/3/2021/09/28afbf82-4126-434a-81cc-853f0216e1f0.jpg`;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -149,10 +170,13 @@ export default async function ProductDetailPage({ params }: Props) {
 
                   {(() => {
                     const imgObj = typeof course.featuredImage === 'object' && course.featuredImage !== null ? course.featuredImage : null;
-                    const rawUrl = imgObj?.wpUploadPath
-                      ? `/uploads/${imgObj.wpUploadPath}`
-                      : (imgObj?.url || (imgObj?.filename ? `/media/${imgObj.filename}` : null));
-                    let imgUrl = resolveImageUrl(rawUrl);
+                    let imgUrl = imgObj?.url?.startsWith('http') ? imgObj.url : null;
+                    if (!imgUrl) {
+                      const rawUrl = imgObj?.wpUploadPath
+                        ? `/uploads/${imgObj.wpUploadPath}`
+                        : (imgObj?.url || (imgObj?.filename ? `/media/${imgObj.filename}` : null));
+                      imgUrl = resolveImageUrl(rawUrl);
+                    }
                     if (!imgUrl || imgUrl.toLowerCase().includes('logo') || (imgObj?.filename && imgObj.filename.toLowerCase().includes('logo'))) {
                       imgUrl = getTopicFallbackImage(course.slug || targetSlug, course.title);
                     }

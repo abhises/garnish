@@ -155,35 +155,42 @@ const COURSES_ITEMS = {
       { label: 'BA (Hons) Pathways (BCN)', href: '/ba-pathway-courses/' },
     ],
   },
-  certified: {
-    heading: 'Certified',
+  comprehensive: {
+    heading: 'Comprehensive Programs',
     items: [
-      { label: 'Garnish Industry Diploma', href: '/academy/electronic-music-production/' },
-      { label: 'Electronic Music Producer', href: '/programs/ableton-producer-program/' },
-      { label: 'International Academy', href: 'https://edu.garnishmusicproduction.com/international-academy/' },
+      { label: '360° Garnish Music Academy', href: '/academy/electronic-music-production/' },
+      { label: 'Electronic Music Producer Program', href: '/programs/ableton-producer-program/' },
+      { label: 'Pop Music Producer Program', href: '/programs/pop-producer-program/' },
     ],
   },
-  shorter: {
-    heading: 'Shorter Tactical',
+  express: {
+    heading: 'Express Classes',
     items: [
       { label: 'Ableton Live', href: '/courses/ableton-live-course-london/' },
-      { label: 'Hit Songwriting', href: '/courses/songwriting-course-london/' },
       { label: 'Logic Pro', href: '/courses/logic-pro-x-course-london/' },
-      { label: 'Logic Self-Paced Online', href: 'https://www.musicgurus.com/learn/garnish-music-production-online-courses/' },
-      { label: 'Mixing & Mastering', href: '/courses/mixing-and-mastering-course-london/' },
-      { label: 'Composition', href: '/courses/composition/' },
-      { label: 'Rhythm Section Programming', href: '/courses/rhythm-section-programming/' },
+      { label: 'Logic Pro Self Paced', href: 'https://www.musicgurus.com/learn/garnish-music-production-online-courses/' },
+      { label: 'FL Studio', href: '/courses/fl-studio/' },
+      { label: 'Pro Tools', href: '/courses/pro-tools/' },
+      { label: 'Mixing/Mixdown', href: '/courses/mixing-and-mastering-course-london/' },
+      { label: 'Mastering', href: '/courses/mastering/' },
+      { label: 'Hit Songwriting Course', href: '/courses/songwriting-course-london/' },
       { label: 'Vocal Production', href: '/courses/vocal-production/' },
+      { label: 'Composition', href: '/courses/composition/' },
+      { label: 'Ableton Live for DJs', href: '/courses/ableton-live-for-djs/' },
+      { label: 'Sound Design & Synthesis in Ableton Live', href: '/courses/sound-design/' },
+      { label: 'Rekordbox', href: '/courses/rekordbox/' },
+      { label: 'Electronic Sound Art with Arturia', href: '/courses/arturia/' },
+      { label: 'Rhythm Section Programming', href: '/courses/rhythm-section-programming/' },
+      { label: 'Radio & Podcast', href: '/courses/radio-podcast/' },
     ],
   },
-  more: {
-    heading: 'More',
+  others: {
+    heading: 'Others',
     items: [
-      { label: 'Private Tuition', href: '/bespoke-private-tuition/' },
-      { label: 'Online Community', href: 'https://garn.link/discord' },
-      { label: 'Summer Camp', href: '/courses/school-summer-camp/' },
-      { label: 'Gift Certificate', href: 'https://edu.garnishmusicproduction.com/gift/' },
-      { label: 'Live Online', href: 'https://edu.garnishmusicproduction.com/live-online/' },
+      { label: 'Private Instruction & Tuition', href: '/bespoke-private-tuition/' },
+      { label: 'Electronic Music DJ Course', href: '/courses/dj-course/' },
+      { label: 'Post Production - Mixing and Sound Design for Film and TV', href: '/courses/post-production/' },
+      { label: 'K-pop Hit Songwriting & Music Production', href: '/courses/k-pop/' },
     ],
   },
 };
@@ -224,7 +231,16 @@ export default function Header({ site }: HeaderProps) {
   const isExternal = (href: string) => href.startsWith('http');
 
   const renderLink = (href: string, label: string, className: string, onClickExtra?: () => void) => {
-    const localHref = getLocalLink(href);
+    let finalHref = href;
+    // Regional sites don't have "-london" in their course slugs.
+    // Strip "-london" from the end of the URL before resolving it.
+    if (site.subdomain && site.subdomain !== 'www' && site.subdomain !== 'edu') {
+      if (finalHref.startsWith('/courses/')) {
+        finalHref = finalHref.replace(/-london(\/?)$/, '$1');
+      }
+    }
+    
+    const localHref = getLocalLink(finalHref);
     const handleClick = () => {
       handleLinkClick();
       if (onClickExtra) onClickExtra();
