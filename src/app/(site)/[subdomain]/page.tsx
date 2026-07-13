@@ -1,4 +1,4 @@
-import { getPosts, getProducts, getFeaturedImage } from '@/lib/wordpress';
+import { getPosts, getProducts, getFeaturedImage, resolveImageUrl } from '@/lib/wordpress';
 import { SITES } from '@/lib/sites';
 import { RANK_MATH_SUBDOMAIN_SETTINGS } from '@/lib/redirects';
 import Image from 'next/image';
@@ -58,12 +58,35 @@ const TESTIMONIALS = [
   },
 ];
 
-// Partner brands from live site
+// Partner brand logos from the live site (WordPress CDN)
 const PARTNERS = [
-  'Ableton', 'iZotope', 'Beatport', 'Arturia', 'Pioneer DJ',
-  'AlphaTheta', 'Soundtoys', 'Auto-Tune', 'FL Studio',
-  'Pitch Innovations', 'Native Instruments', 'Apple',
+  { name: 'Ableton', src: 'https://www.garnishmusicproduction.com/wp-content/uploads/2025/02/1.png' },
+  { name: 'iZotope', src: 'https://www.garnishmusicproduction.com/wp-content/uploads/2025/02/2-copy-1.png' },
+  { name: 'Beatport', src: 'https://www.garnishmusicproduction.com/wp-content/uploads/2025/02/3.png' },
+  { name: 'Arturia', src: 'https://www.garnishmusicproduction.com/wp-content/uploads/2025/02/4-1.png' },
+  { name: 'Pioneer DJ', src: 'https://www.garnishmusicproduction.com/wp-content/uploads/2025/02/svgexport-1-1.png' },
+  { name: 'AlphaTheta', src: 'https://www.garnishmusicproduction.com/wp-content/uploads/2025/02/AlphaTheta-1.png' },
+  { name: 'Soundtoys', src: 'https://www.garnishmusicproduction.com/wp-content/uploads/2025/02/logo-1.png' },
+  { name: 'Auto-Tune', src: 'https://www.garnishmusicproduction.com/wp-content/uploads/2025/02/Auto-Tune_white_logo_with_green_A_wave-1.png' },
+  { name: 'FL Studio', src: 'https://www.garnishmusicproduction.com/wp-content/uploads/2025/02/Image-Line.png' },
+  { name: 'Pitch Innovations', src: 'https://www.garnishmusicproduction.com/wp-content/uploads/2025/02/logo-2.png' },
+  { name: 'Native Instruments', src: 'https://www.garnishmusicproduction.com/wp-content/uploads/2025/02/Native_Instruments_logo_2023.svg_-1.png' },
+  { name: 'Apple', src: 'https://www.garnishmusicproduction.com/wp-content/uploads/2025/02/apple.png' },
 ];
+
+// Topic-based fallback images for products missing featured images
+const getTopicFallbackImage = (slugStr: string, titleStr?: string): string => {
+  const s = (slugStr + ' ' + (titleStr || '')).toLowerCase();
+  if (s.includes('songwrit')) return 'https://www.garnishmusicproduction.com/wp-content/uploads/2018/04/Hit-Songwriting-Course-London-800.jpg';
+  if (s.includes('ableton')) return 'https://www.garnishmusicproduction.com/wp-content/uploads/2018/04/Ableton-Live-10-production-course-2-300x163.jpg';
+  if (s.includes('logic')) return 'https://www.garnishmusicproduction.com/wp-content/uploads/2018/03/LogClass-800.jpg';
+  if (s.includes('dj') || s.includes('turntab')) return 'https://www.garnishmusicproduction.com/wp-content/uploads/sites/7/2025/01/PUSH-3-Blur-Dark.png';
+  if (s.includes('mix') || s.includes('master')) return 'https://www.garnishmusicproduction.com/wp-content/uploads/sites/7/2025/01/Girl-in-Headphones-Blur.png';
+  if (s.includes('camp') || s.includes('summer')) return 'https://www.garnishmusicproduction.com/wp-content/uploads/2020/02/Garnish21.jpg';
+  if (s.includes('sound') && s.includes('design')) return 'https://www.garnishmusicproduction.com/wp-content/uploads/sites/7/2020/03/Online-Music-Production-Courses.jpg';
+  if (s.includes('producer') || s.includes('production')) return 'https://www.garnishmusicproduction.com/wp-content/uploads/sites/7/2020/03/Online-Music-Production-Courses.jpg';
+  return 'https://www.garnishmusicproduction.com/wp-content/uploads/sites/3/2021/09/28afbf82-4126-434a-81cc-853f0216e1f0.jpg';
+};
 
 // Shorter courses matching live site
 const SHORTER_COURSES = [
@@ -104,6 +127,7 @@ export default async function SubdomainPage({ params }: SubdomainPageProps) {
   ]);
 
   const hasProducts = products && products.length > 0;
+  const resolvedHeroImage = resolveImageUrl(site.heroImage || '/studio-hero.png') || '/studio-hero.png';
 
   return (
     <div className="font-sans bg-white">
@@ -112,11 +136,11 @@ export default async function SubdomainPage({ params }: SubdomainPageProps) {
         {/* Hero background */}
         <div className="relative min-h-[500px] lg:min-h-[600px] flex items-center justify-center">
           <Image
-            src={site.heroImage || '/studio-hero.png'}
+            src={resolvedHeroImage}
             alt={`${site.name} - ${site.city}`}
             fill
             priority
-            unoptimized={(site.heroImage || '/studio-hero.png').startsWith('http')}
+            unoptimized={resolvedHeroImage.startsWith('http')}
             sizes="100vw"
             className="object-cover opacity-40"
           />
@@ -172,6 +196,12 @@ export default async function SubdomainPage({ params }: SubdomainPageProps) {
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {products.slice(0, 4).map((product) => {
                 const featuredImg = getFeaturedImage(product, 'medium');
+                let imgUrl = featuredImg?.url;
+                // Use topic fallback when no featured image or it's just a logo
+                if (!imgUrl || imgUrl.toLowerCase().includes('logo')) {
+                  imgUrl = getTopicFallbackImage(product.slug, product.title.rendered);
+                }
+                imgUrl = resolveImageUrl(imgUrl) || imgUrl;
                 return (
                   <Link
                     key={product.id}
@@ -179,27 +209,22 @@ export default async function SubdomainPage({ params }: SubdomainPageProps) {
                     className="group block bg-white border border-slate-200 hover:border-[#c0392b] transition-all overflow-hidden"
                   >
                     <div className="relative aspect-[4/3] bg-slate-100 overflow-hidden">
-                      {featuredImg && typeof featuredImg.url === 'string' && featuredImg.url.trim() !== '' ? (
-                        featuredImg.url.toLowerCase().endsWith('.gif') ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={featuredImg.url}
-                            alt={featuredImg.alt}
-                            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                          />
-                        ) : (
-                          <Image
-                            src={featuredImg.url}
-                            alt={featuredImg.alt}
-                            fill
-                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                            className="object-cover group-hover:scale-105 transition-transform duration-500"
-                          />
-                        )
+                      {imgUrl.toLowerCase().endsWith('.gif') ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={imgUrl}
+                          alt={featuredImg?.alt || product.title.rendered}
+                          className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
                       ) : (
-                        <div className="absolute inset-0 flex items-center justify-center bg-slate-100">
-                          <span className="text-slate-400 text-xs">{site.name}</span>
-                        </div>
+                        <Image
+                          src={imgUrl}
+                          alt={featuredImg?.alt || product.title.rendered}
+                          fill
+                          unoptimized={imgUrl.startsWith('http')}
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                          className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
                       )}
                     </div>
                     <div className="p-5">
@@ -268,14 +293,17 @@ export default async function SubdomainPage({ params }: SubdomainPageProps) {
       {/* ===== PARTNERS SECTION ===== */}
       <section className="bg-[#c0392b] py-10 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
-          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-4">
-            {PARTNERS.map((name) => (
-              <span
-                key={name}
-                className="text-white/80 text-xs font-bold uppercase tracking-widest hover:text-white transition-colors cursor-default"
-              >
-                {name}
-              </span>
+          <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-6">
+            {PARTNERS.map((partner) => (
+              <div key={partner.name} className="relative h-8 w-24 sm:h-10 sm:w-32 flex-shrink-0 opacity-80 hover:opacity-100 transition-opacity">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={partner.src}
+                  alt={partner.name}
+                  className="h-full w-full object-contain brightness-0 invert"
+                  loading="lazy"
+                />
+              </div>
             ))}
           </div>
         </div>

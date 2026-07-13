@@ -177,7 +177,7 @@ export default async function ProductDetailPage({ params }: Props) {
                   <div 
                     className="wp-content prose prose-slate max-w-none text-slate-700 leading-relaxed"
                     style={{ '--accent': site.accentColor } as React.CSSProperties}
-                    dangerouslySetInnerHTML={{ __html: (course.description || 'Full academy syllabus, mixing assignments, hands-on workstation setup, and 1-on-1 mentorship.').replace(/https?:\/\/[^\/]+\/wp-content\/uploads\//gi, '/uploads/').replace(/\/wp-content\/uploads\//gi, '/uploads/') }}
+                    dangerouslySetInnerHTML={{ __html: (course.description || 'Full academy syllabus, mixing assignments, hands-on workstation setup, and 1-on-1 mentorship.').replace(/https?:\/\/[^\/]+\/wp-content\/uploads\//gi, 'https://www.garnishmusicproduction.com/wp-content/uploads/').replace(/src=["']\/uploads\//gi, 'src="https://www.garnishmusicproduction.com/wp-content/uploads/') }}
                   />
                 </div>
               </div>
@@ -261,7 +261,7 @@ export default async function ProductDetailPage({ params }: Props) {
                 })()}
 
                 <h2 className="text-xl font-bold text-slate-900 mb-4 font-display">Course Overview</h2>
-                <div className="wp-content prose prose-slate max-w-none" style={{ '--accent': site.accentColor } as React.CSSProperties} dangerouslySetInnerHTML={{ __html: product.content.rendered.replace(/https?:\/\/[^\/]+\/wp-content\/uploads\//gi, '/uploads/').replace(/\/wp-content\/uploads\//gi, '/uploads/') }} />
+                <div className="wp-content prose prose-slate max-w-none" style={{ '--accent': site.accentColor } as React.CSSProperties} dangerouslySetInnerHTML={{ __html: product.content.rendered.replace(/https?:\/\/[^\/]+\/wp-content\/uploads\//gi, 'https://www.garnishmusicproduction.com/wp-content/uploads/').replace(/src=["']\/uploads\//gi, 'src="https://www.garnishmusicproduction.com/wp-content/uploads/') }} />
               </div>
 
               <div className="bg-white rounded-3xl p-8 sm:p-12 shadow-sm border border-slate-100/80">

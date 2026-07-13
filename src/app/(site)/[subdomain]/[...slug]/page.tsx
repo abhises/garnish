@@ -190,10 +190,11 @@ const parseWPBakery = (html: string): string => {
   // Strip empty paragraphs that may have been created or left over
   content = content.replace(/<p>\s*<\/p>/gi, '');
 
-  // Convert any remaining /wp-content/uploads/ references directly to local /uploads/
+  // Convert any remaining /wp-content/uploads/ references to the live WordPress CDN
   content = content
-    .replace(/https?:\/\/[^\/]+\/wp-content\/uploads\//gi, '/uploads/')
-    .replace(/\/wp-content\/uploads\//gi, '/uploads/');
+    .replace(/https?:\/\/[^\/]+\/wp-content\/uploads\//gi, 'https://www.garnishmusicproduction.com/wp-content/uploads/')
+    .replace(/(?<![a-z]:\/\/[^\s"']*)\/(wp-content\/uploads\/)/gi, 'https://www.garnishmusicproduction.com/$1')
+    .replace(/src=["']\/uploads\//gi, 'src="https://www.garnishmusicproduction.com/wp-content/uploads/');
 
   // 5. Force any WPBakery column wrapping mkd-testimonials to occupy 100% full width instead of 25%/33%
   if (content.includes('mkd-testimonials') || content.includes('mkd-testimonial')) {
@@ -318,6 +319,7 @@ export default async function DynamicSubdomainPage({ params }: Props) {
                     alt={imgObj.alt || payloadPage.title}
                     fill
                     priority
+                    unoptimized={imgUrl.startsWith('http')}
                     sizes="(max-w-768px) 100vw, 900px"
                     className="object-cover"
                   />
@@ -366,6 +368,7 @@ export default async function DynamicSubdomainPage({ params }: Props) {
                 alt={featuredImage.alt}
                 fill
                 priority
+                unoptimized={featuredImage.url.startsWith('http')}
                 sizes="(max-w-768px) 100vw, 900px"
                 className="object-cover"
               />

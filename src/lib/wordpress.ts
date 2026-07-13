@@ -65,24 +65,37 @@ export interface WordPressPost {
   };
 }
 
-// Utility to resolve any image or upload path to local public/uploads
+// Utility to resolve any image or upload path to Cloudinary / live CDN when local files are not present
 export function resolveImageUrl(urlOrPath: string | undefined | null): string | null {
   if (!urlOrPath || typeof urlOrPath !== 'string' || urlOrPath.trim() === '') return null;
 
-  // If it already points to local /uploads/ or /media/ or /studio-hero.png
-  if (urlOrPath.startsWith('/uploads/') || urlOrPath.startsWith('/media/') || urlOrPath.startsWith('/studio-hero')) {
-    return urlOrPath;
+  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_CLOUD_NAME || 's7pus8t5';
+
+  // If it points to local /media/ or /studio-hero, route directly from Cloudinary
+  if (urlOrPath.startsWith('/media/')) {
+    const filename = urlOrPath.replace(/^\/media\//, '');
+    return `https://res.cloudinary.com/${cloudName}/image/upload/garnish-media/${filename}`;
+  }
+  if (urlOrPath.startsWith('/studio-hero')) {
+    const filename = urlOrPath.replace(/^\//, '');
+    return `https://res.cloudinary.com/${cloudName}/image/upload/garnish-media/${filename}`;
+  }
+
+  // If it points to /uploads/ or wp-content/uploads, route to live WordPress CDN when local files are removed
+  if (urlOrPath.startsWith('/uploads/')) {
+    const relativePath = urlOrPath.replace(/^\/uploads\//, '');
+    return `https://www.garnishmusicproduction.com/wp-content/uploads/${relativePath}`;
   }
 
   // If it's a relative wpUploadPath (e.g., '2018/03/foo.jpg' or 'sites/2/2019/01/bar.png')
   if (/^(sites\/\d+\/)?\d{4}\/\d{2}\//.test(urlOrPath)) {
-    return `/uploads/${urlOrPath.replace(/^\//, '')}`;
+    return `https://www.garnishmusicproduction.com/wp-content/uploads/${urlOrPath.replace(/^\//, '')}`;
   }
 
   // If it contains /wp-content/uploads/ from any domain or relative path
   const wpMatch = urlOrPath.match(/[\/a-zA-Z0-9.:_-]*\/wp-content\/uploads\/(.+)/i);
   if (wpMatch && wpMatch[1]) {
-    return `/uploads/${wpMatch[1].split('?')[0]}`;
+    return `https://www.garnishmusicproduction.com/wp-content/uploads/${wpMatch[1].split('?')[0]}`;
   }
 
   return urlOrPath;

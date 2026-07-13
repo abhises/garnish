@@ -91,6 +91,7 @@ export default async function BlogPostPage({ params }: Props) {
               alt={featuredImage.alt}
               fill
               priority
+              unoptimized={featuredImage.url.startsWith('http')}
               sizes="(max-w-768px) 100vw, 800px"
               className="object-cover"
             />
@@ -102,7 +103,7 @@ export default async function BlogPostPage({ params }: Props) {
           <div 
             className="wp-content prose prose-slate max-w-none"
             style={{ '--accent': site.accentColor } as React.CSSProperties}
-            dangerouslySetInnerHTML={{ __html: post.content.rendered.replace(/https?:\/\/[^\/]+\/wp-content\/uploads\//gi, '/uploads/').replace(/\/wp-content\/uploads\//gi, '/uploads/') }}
+            dangerouslySetInnerHTML={{ __html: post.content.rendered.replace(/https?:\/\/[^\/]+\/wp-content\/uploads\//gi, 'https://www.garnishmusicproduction.com/wp-content/uploads/').replace(/src=["']\/uploads\//gi, 'src="https://www.garnishmusicproduction.com/wp-content/uploads/') }}
           />
 
           {/* Footer Back Link */}

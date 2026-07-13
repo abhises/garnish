@@ -1,4 +1,4 @@
-import { getProducts, getFeaturedImage } from '@/lib/wordpress';
+import { getProducts, getFeaturedImage, resolveImageUrl } from '@/lib/wordpress';
 import { SITES } from '@/lib/sites';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
@@ -69,6 +69,7 @@ export default async function ProgramsPage({ params }: Props) {
               if (!imgUrl || imgUrl.toLowerCase().includes('logo')) {
                 imgUrl = getTopicFallbackImage(product.slug, product.title.rendered);
               }
+              imgUrl = resolveImageUrl(imgUrl) || imgUrl;
               return (
                 <div 
                   key={product.id}
@@ -80,6 +81,7 @@ export default async function ProgramsPage({ params }: Props) {
                         src={imgUrl}
                         alt={featuredImg?.alt || product.title.rendered}
                         fill
+                        unoptimized={imgUrl.startsWith('http')}
                         className="object-cover group-hover:scale-102 transition-transform duration-300"
                       />
                     </div>

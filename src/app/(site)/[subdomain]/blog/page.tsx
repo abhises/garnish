@@ -63,6 +63,7 @@ export default async function BlogIndexPage({ params }: Props) {
                           src={featuredImg.url}
                           alt={featuredImg.alt}
                           fill
+                          unoptimized={featuredImg.url.startsWith('http')}
                           className="object-cover group-hover:scale-102 transition-transform duration-300"
                         />
                       ) : (

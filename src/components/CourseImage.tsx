@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { resolveImageUrl } from '@/lib/wordpress';
 
 interface CourseImageProps {
   src: string;
@@ -11,8 +12,13 @@ interface CourseImageProps {
 }
 
 export function CourseImage({ src, alt, className = 'object-cover', sizes = '(max-w-768px) 100vw, 800px' }: CourseImageProps) {
-  const [imgSrc, setImgSrc] = useState(src);
+  const resolved = resolveImageUrl(src) || src;
+  const [imgSrc, setImgSrc] = useState(resolved);
   const fallbackSrc = '/studio-hero.png';
+
+  useEffect(() => {
+    setImgSrc(resolveImageUrl(src) || src);
+  }, [src]);
 
   return (
     <Image
@@ -20,6 +26,7 @@ export function CourseImage({ src, alt, className = 'object-cover', sizes = '(ma
       alt={alt}
       fill
       priority
+      unoptimized={imgSrc.startsWith('http')}
       sizes={sizes}
       className={className}
       onError={() => {
