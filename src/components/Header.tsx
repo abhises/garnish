@@ -11,27 +11,140 @@ interface HeaderProps {
 
 // Exact navigation structure from live WordPress site
 const ABOUT_ITEMS = {
-  london: [
-    { label: 'Home', href: '/' },
-    { label: 'Tutors', href: '/instructors/' },
-    { label: 'Dave Garnish', href: 'https://edu.garnishmusicproduction.com/music/dave-garnish/' },
-    { label: 'Terms', href: '/terms/' },
-    { label: 'Privacy Policy', href: '/privacy-policy/' },
-  ],
   locations: [
     { label: 'World Home', href: 'https://edu.garnishmusicproduction.com/', code: 'edu' },
-    { label: 'BCN', href: 'https://bcn.garnishmusicproduction.com/', code: 'bcn' },
-    { label: 'BER', href: 'https://ber.garnishmusicproduction.com', code: 'ber' },
     { label: 'LDN', href: 'https://www.garnishmusicproduction.com/', code: 'www' },
-    { label: 'LIS', href: 'https://lis.garnishmusicproduction.com/', code: 'lis' },
-    { label: 'HK', href: 'https://hk.garnishmusicproduction.com', code: 'hk' },
-    { label: 'TYO', href: 'https://tyo.garnishmusicproduction.com/', code: 'tyo' },
     { label: 'LA', href: 'https://la.garnishmusicproduction.com/', code: 'la' },
-    { label: 'MIA', href: 'https://mia.garnishmusicproduction.com', code: 'mia' },
+    { label: 'NY', href: 'https://ny.garnishmusicproduction.com/', code: 'ny' },
     { label: 'NSH', href: 'https://nsh.garnishmusicproduction.com/', code: 'nsh' },
+    { label: 'BER', href: 'https://ber.garnishmusicproduction.com/', code: 'ber' },
+    { label: 'HK', href: 'https://hk.garnishmusicproduction.com', code: 'hk' },
+    { label: 'MIA', href: 'https://mia.garnishmusicproduction.com/', code: 'mia' },
+    { label: 'TYO', href: 'https://tyo.garnishmusicproduction.com/', code: 'tyo' },
     { label: 'SEA', href: 'https://sea.garnishmusicproduction.com/', code: 'sea' },
+    { label: 'BCN', href: 'https://bcn.garnishmusicproduction.com/', code: 'bcn' },
+    { label: 'HOU', href: 'https://hou.garnishmusicproduction.com/', code: 'hou' },
+    { label: 'SYD', href: 'https://syd.garnishmusicproduction.com/', code: 'syd' },
+    { label: 'AV', href: 'https://av.garnishmusicproduction.com/', code: 'av' },
+    { label: 'LIS', href: 'https://lis.garnishmusicproduction.com/', code: 'lis' },
     { label: 'SF', href: 'https://sf.garnishmusicproduction.com/', code: 'sf' },
+    { label: 'SG', href: 'https://sg.garnishmusicproduction.com/', code: 'sg' },
+    { label: 'PDX', href: 'https://pdx.garnishmusicproduction.com/', code: 'pdx' },
+    { label: 'MRB', href: 'https://mrb.garnishmusicproduction.com/', code: 'mrb' },
+    { label: 'BH', href: 'https://bh.garnishmusicproduction.com/', code: 'bh' },
   ],
+};
+
+const getAboutItems = (subdomain?: string) => {
+  if (subdomain === 'la') {
+    return [
+      { label: 'Home', href: '/' },
+      { label: 'Discord', href: 'https://garn.link/discord' },
+      { label: 'Tutors', href: '/instructors/' },
+      { label: 'Appu Krishnan', href: 'https://la.garnishmusicproduction.com/instructors/appu/' },
+      { label: 'Dave Garnish', href: 'https://edu.garnishmusicproduction.com/music/dave-garnish/' },
+      { label: 'Terms', href: '/terms/' },
+      { label: 'Privacy Policy', href: '/privacy-policy/' },
+      { label: 'Gift Certificate', href: 'https://edu.garnishmusicproduction.com/gift/' },
+      { label: 'Contact', href: '/contact/' },
+    ];
+  }
+  if (subdomain === 'edu') {
+    return [
+      { label: 'Home', href: '/' },
+      { label: 'International Academy', href: '/international-academy/' },
+      { label: 'Dave Garnish', href: 'https://edu.garnishmusicproduction.com/music/dave-garnish/' },
+      { label: 'Terms', href: '/terms/' },
+      { label: 'Privacy Policy', href: '/privacy-policy/' },
+      { label: 'Contact', href: '/contact/' },
+    ];
+  }
+  if (subdomain === 'mia') {
+    return [
+      { label: 'Home', href: '/' },
+      { label: 'Open House', href: '/open-house/' },
+      { label: 'Instructors', href: '/instructors/' },
+      { label: 'Dave Garnish', href: 'https://edu.garnishmusicproduction.com/music/dave-garnish/' },
+      { label: 'Terms', href: '/terms/' },
+      { label: 'Privacy Policy', href: '/privacy-policy/' },
+      { label: 'Contact', href: '/contact/' },
+    ];
+  }
+  if (subdomain === 'ber') {
+    return [
+      { label: 'Home', href: '/' },
+      { label: 'Private/Bespoke', href: '/bespoke-private-tuition/' },
+      { label: 'Dave Garnish', href: 'https://edu.garnishmusicproduction.com/music/dave-garnish/' },
+      { label: 'Compliancy', href: '/compliancy/' },
+      { label: 'Privacy', href: '/privacy-policy/' },
+      { label: 'Contact', href: '/contact/' },
+    ];
+  }
+  if (subdomain === 'ny') {
+    return [
+      { label: 'Home', href: '/' },
+      { label: 'Discord', href: 'https://garn.link/discord' },
+      { label: 'Instructors', href: '/instructors/' },
+      { label: 'Dave Garnish', href: 'https://edu.garnishmusicproduction.com/music/dave-garnish/' },
+      { label: 'Terms', href: '/terms/' },
+      { label: 'Privacy Policy', href: '/privacy-policy/' },
+      { label: 'Contact', href: '/contact/' },
+    ];
+  }
+  if (subdomain === 'bcn') {
+    return [
+      { label: 'Home', href: '/' },
+      { label: 'Dave Garnish', href: 'https://edu.garnishmusicproduction.com/music/dave-garnish/' },
+      { label: 'Private Tuition', href: '/bespoke-private-tuition/' },
+      { label: 'Terms', href: '/terms/' },
+      { label: 'Privacy Policy', href: '/privacy-policy/' },
+      { label: 'Contact', href: '/contact/' },
+    ];
+  }
+  if (subdomain === 'nsh') {
+    return [
+      { label: 'Home', href: '/' },
+      { label: 'Instructors', href: '/instructors/' },
+      { label: 'Dave Garnish', href: 'https://edu.garnishmusicproduction.com/music/dave-garnish/' },
+      { label: 'Online Community', href: 'https://garn.link/discord' },
+      { label: 'Terms', href: '/terms/' },
+      { label: 'Privacy Policy', href: '/privacy-policy/' },
+      { label: 'Contact', href: '/contact/' },
+    ];
+  }
+  if (subdomain === 'sf') {
+    return [
+      { label: 'Home', href: '/' },
+      { label: 'Online', href: 'https://edu.garnishmusicproduction.com/live-online/' },
+      { label: 'Dave Garnish', href: 'https://edu.garnishmusicproduction.com/music/dave-garnish/' },
+      { label: 'Terms', href: '/terms/' },
+      { label: 'Privacy Policy', href: '/privacy-policy/' },
+      { label: 'Contact', href: '/contact/' },
+    ];
+  }
+  if (subdomain === 'www') {
+    return [
+      { label: 'Home', href: '/' },
+      { label: 'Tutors', href: '/instructors/' },
+      { label: 'Dave Garnish', href: 'https://edu.garnishmusicproduction.com/music/dave-garnish/' },
+      { label: 'Open House', href: '/open-house/' },
+      { label: 'Private Tuition', href: '/bespoke-private-tuition/' },
+      { label: 'Terms', href: '/terms/' },
+      { label: 'Privacy Policy', href: '/privacy-policy/' },
+      { label: 'Contact', href: '/contact/' },
+    ];
+  }
+  return [
+    { label: 'Home', href: '/' },
+    { label: 'Instructors', href: '/instructors/' },
+    { label: 'Dave Garnish', href: 'https://edu.garnishmusicproduction.com/music/dave-garnish/' },
+    { label: 'Open House', href: '/open-house/' },
+    { label: 'Private/Bespoke Tuition', href: '/bespoke-private-tuition/' },
+    { label: 'Online Community', href: 'https://garn.link/discord' },
+    { label: 'Terms', href: '/terms/' },
+    { label: 'Privacy Policy', href: '/privacy-policy/' },
+    { label: 'Contact', href: '/contact/' },
+  ];
 };
 
 const COURSES_ITEMS = {
@@ -174,10 +287,10 @@ export default function Header({ site }: HeaderProps) {
                     <div className="grid grid-cols-2 gap-8">
                       <div>
                         <h4 className="text-[10px] font-bold uppercase tracking-widest text-[#c0392b] mb-3">
-                          {site.city}
+                          {site.subdomain === 'edu' ? 'Information' : site.city}
                         </h4>
                         <ul className="space-y-2">
-                          {ABOUT_ITEMS.london.map((item) => (
+                          {getAboutItems(site.subdomain).map((item) => (
                             <li key={item.href}>
                               {renderLink(item.href, item.label,
                                 'block text-[13px] text-slate-600 hover:text-[#c0392b] transition-colors'
@@ -310,8 +423,8 @@ export default function Header({ site }: HeaderProps) {
           <div className="px-4 py-4 space-y-1">
             {/* About Section */}
             <div className="border-b border-slate-100 pb-3 mb-3">
-              <p className="px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-[#c0392b]">{site.city}</p>
-              {ABOUT_ITEMS.london.map((item) => {
+              <p className="px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-[#c0392b]">{site.subdomain === 'edu' ? 'Information' : site.city}</p>
+              {getAboutItems(site.subdomain).map((item) => {
                 const localHref = getLocalLink(item.href);
                 return (
                   <div key={item.href}>

@@ -27,6 +27,7 @@ const getSlugCandidates = (slug: string): string[] => {
     'terms-and-conditions',
     'terms-conditions',
     'terms-compliancy',
+    'compliancy',
     'terms-of-service',
     'garnish-los-angeles-terms',
     'songwriting-terms-conditions',

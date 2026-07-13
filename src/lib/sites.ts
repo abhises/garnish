@@ -290,9 +290,12 @@ export function getLocalLink(url: string): string {
     return url;
   }
 
-  // Keep dave-garnish on relative local path in development mode so it never redirects away from current local server
+  // Keep dave-garnish and appu on relative local paths in development mode
   if (url.includes('dave-garnish')) {
     return '/courses/dave-garnish/';
+  }
+  if (url.includes('appu')) {
+    return '/instructors/appu/';
   }
 
   try {
