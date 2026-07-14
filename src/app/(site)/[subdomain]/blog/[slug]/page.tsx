@@ -103,7 +103,12 @@ export default async function BlogPostPage({ params }: Props) {
           <div 
             className="wp-content prose prose-slate max-w-none"
             style={{ '--accent': site.accentColor } as React.CSSProperties}
-            dangerouslySetInnerHTML={{ __html: post.content.rendered.replace(/https?:\/\/[^\/]+\/wp-content\/uploads\//gi, 'https://www.garnishmusicproduction.com/wp-content/uploads/').replace(/src=["']\/uploads\//gi, 'src="https://www.garnishmusicproduction.com/wp-content/uploads/') }}
+            dangerouslySetInnerHTML={{ __html: post.content.rendered
+              .replace(/https?:\/\/[^\/\s"']+\/wp-content\/uploads\/([^"'\s>?#]+)/gi,
+                'https://res.cloudinary.com/s7pus8t5/image/upload/garnish-uploads/$1')
+              .replace(/src=["']\/uploads\/([^"'\s>?#]+)/gi,
+                'src="https://res.cloudinary.com/s7pus8t5/image/upload/garnish-uploads/$1"')
+            }}
           />
 
           {/* Footer Back Link */}

@@ -1,4 +1,4 @@
-import { getProductBySlug, getFeaturedImage, resolveImageUrl } from '@/lib/wordpress';
+import { getProductBySlug, getPageBySlug, getFeaturedImage, resolveImageUrl } from '@/lib/wordpress';
 import { SITES } from '@/lib/sites';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
@@ -12,7 +12,6 @@ import { parseWPBakery } from '@/lib/wpbakery';
 const LEGACY_SLUG_MAP: Record<string, string> = {
   // London-specific suffixed slugs → canonical DB slugs
   'school-summer-camp': 'summer-camp',
-  'ableton-live-course-london': 'ableton-production',
   'logic-pro-x-course-london': 'logic-course',
   'songwriting-course-london': 'songwriting-course',
   'mixing-and-mastering-course-london': 'mixing-mastering-course',
@@ -90,6 +89,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const targetSlug = LEGACY_SLUG_MAP[cleanSlug] || cleanSlug;
   const site = SITES[subdomain] || SITES.www;
 
+  if (subdomain !== 'www') {
+    const wpPage = await getPageBySlug(subdomain, targetSlug);
+    const wpProduct = !wpPage ? await getProductBySlug(subdomain, targetSlug) : null;
+    const wpItem = wpPage || wpProduct;
+    if (wpItem && site) {
+      const titleMatch = wpItem.content?.rendered?.match(/<h2[^>]*>(?:<strong>)?([^<]+)(?:<\/strong>)?<\/h2>/i);
+      const pageTitle = titleMatch ? titleMatch[1].trim() : (wpItem.title?.rendered || 'Course');
+      return {
+        title: `${pageTitle} | Courses | ${site.name}`,
+        description: wpItem.excerpt?.rendered?.replace(/<[^>]*>/g, '').substring(0, 160) || `${pageTitle} course at Garnish ${site.city}`,
+      };
+    }
+  }
+
   try {
     const payload = await getPayload({ config: configPromise });
     let result = await payload.find({
@@ -133,15 +146,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         description: c.shortDescription || `${c.title} course at Garnish ${site.city}`,
       };
     }
-  } catch {
-    // Fallback if Payload DB not ready
+  } catch (err) {
+    console.error('Payload error in generateMetadata:', err);
   }
 
-  const product = await getProductBySlug(subdomain, targetSlug);
-  if (product && site) {
+  const wpPage = await getPageBySlug(subdomain, targetSlug);
+  const product = !wpPage ? await getProductBySlug(subdomain, targetSlug) : null;
+  const item = wpPage || product;
+  if (item && site) {
+    const titleMatch = item.content?.rendered?.match(/<h2[^>]*>(?:<strong>)?([^<]+)(?:<\/strong>)?<\/h2>/i);
+    const pageTitle = titleMatch ? titleMatch[1].trim() : (item.title?.rendered || 'Course');
     return {
-      title: `${product.title.rendered} | Courses | ${site.name}`,
-      description: product.excerpt?.rendered.replace(/<[^>]*>/g, '').substring(0, 160) || 'Learn music production.',
+      title: `${pageTitle} | Courses | ${site.name}`,
+      description: item.excerpt?.rendered?.replace(/<[^>]*>/g, '').substring(0, 160) || 'Learn music production.',
     };
   }
 
@@ -162,6 +179,98 @@ export default async function ProductDetailPage({ params }: Props) {
   const targetSlug = LEGACY_SLUG_MAP[cleanSlug] || cleanSlug;
   const site = SITES[subdomain] || SITES.www;
 
+  if (subdomain !== 'www') {
+    const wpPage = await getPageBySlug(subdomain, targetSlug);
+    const wpProduct = !wpPage ? await getProductBySlug(subdomain, targetSlug) : null;
+    const wpItem = wpPage || wpProduct;
+    if (wpItem && site) {
+      const titleMatch = wpItem.content?.rendered?.match(/<h2[^>]*>(?:<strong>)?([^<]+)(?:<\/strong>)?<\/h2>/i);
+      const pageTitle = titleMatch ? titleMatch[1].trim() : (wpItem.title?.rendered || 'Course');
+      const featuredImage = getFeaturedImage(wpItem);
+      let finalImgUrl = featuredImage?.url;
+      if (!finalImgUrl || finalImgUrl.toLowerCase().includes('logo')) {
+        finalImgUrl = getTopicFallbackImage(targetSlug, pageTitle);
+      }
+      const courseDuration = wpItem.acf?.duration || '120–360 Hours (Certificate)';
+      const courseSchedule = wpItem.acf?.schedule || 'Flexible & Small Classes';
+      const courseLevel = wpItem.acf?.level || 'Beginner to Intermediate';
+      const startDates = ['July 20, 2026', 'August 17, 2026', 'September 14, 2026'];
+      const coursePrice = wpItem.price || wpItem.acf?.price || '$1,495';
+
+      let cleanContent = wpItem.content?.rendered || '';
+      if (titleMatch && cleanContent.includes(titleMatch[0])) {
+        cleanContent = cleanContent.replace(titleMatch[0], '');
+      }
+
+      return (
+        <main className="min-h-screen py-16 px-4 sm:px-6 lg:px-8 bg-slate-50">
+          <div className="max-w-6xl mx-auto">
+            <div className="mb-8">
+              <Link href="/" className="text-xs font-bold uppercase tracking-wider text-slate-400 hover:text-slate-600 transition-colors">
+                ← Back to Home
+              </Link>
+            </div>
+
+            <div className="grid gap-12 lg:grid-cols-3">
+              <div className="lg:col-span-2 space-y-8">
+                <div className="bg-white rounded-3xl p-8 sm:p-12 shadow-sm border border-slate-100/80">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-6" style={{ color: site.accentColor, backgroundColor: `${site.accentColor}10` }}>
+                    Garnish {site.city}
+                  </span>
+                  <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight font-display mb-6">
+                    {pageTitle}
+                  </h1>
+
+                  <div className="relative aspect-[16/9] w-full rounded-2xl overflow-hidden bg-slate-100 my-8 shadow-sm border border-slate-100">
+                    <CourseImage src={finalImgUrl} alt={featuredImage?.alt || pageTitle} />
+                  </div>
+
+                  <h2 className="text-xl font-bold text-slate-900 mb-4 font-display">Course Overview & Modules</h2>
+                  <div className="wp-content prose prose-slate max-w-none text-slate-700 leading-relaxed" style={{ '--accent': site.accentColor } as React.CSSProperties} dangerouslySetInnerHTML={{ __html: parseWPBakery(cleanContent, site.accentColor) }} />
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100/80 sticky top-28">
+                  <div className="mb-6">
+                    <span className="text-xs text-slate-400 font-medium block">Tuition Price</span>
+                    <span className="text-3xl font-black text-slate-900 tracking-tight block mt-1">{coursePrice}</span>
+                  </div>
+
+                  <Link href={`/checkout?product=${targetSlug}`} className="block w-full text-center py-4 rounded-xl text-sm font-bold text-white transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 mb-3" style={{ backgroundColor: site.accentColor }}>
+                    Enroll Online & Checkout
+                  </Link>
+                  <Link href="/contact" className="block w-full text-center py-3.5 rounded-xl text-sm font-bold border-2 transition-all hover:bg-slate-50 text-slate-700 border-slate-200 mb-6">
+                    Request Schedule & Info
+                  </Link>
+
+                  <div className="space-y-4 pt-6 border-t border-slate-100 text-xs">
+                    <div className="flex justify-between py-1"><span className="text-slate-400">Duration:</span><span className="font-bold text-slate-800">{courseDuration}</span></div>
+                    <div className="flex justify-between py-1"><span className="text-slate-400">Schedule:</span><span className="font-bold text-slate-800">{courseSchedule}</span></div>
+                    <div className="flex justify-between py-1"><span className="text-slate-400">Level:</span><span className="font-bold text-slate-800">{courseLevel}</span></div>
+                    <div className="flex justify-between py-1"><span className="text-slate-400">Tutors:</span><span className="font-bold text-slate-800">Award-winning Pros</span></div>
+                  </div>
+
+                  <div className="mt-8 pt-6 border-t border-slate-100">
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Upcoming Intake Dates</h3>
+                    <div className="space-y-2">
+                      {startDates.map((date, index) => (
+                        <div key={index} className="flex items-center gap-3 text-xs text-slate-600">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                          <span>{date}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      );
+    }
+  }
+
   // 1. First: Check if this course/product exists in Payload CMS v3 ('courses' collection)
   try {
     const payload = await getPayload({ config: configPromise });
@@ -176,6 +285,96 @@ export default async function ProductDetailPage({ params }: Props) {
     });
 
     if (result.docs.length === 0 && subdomain !== 'www') {
+      const wpPage = await getPageBySlug(subdomain, targetSlug);
+      const wpProduct = !wpPage ? await getProductBySlug(subdomain, targetSlug) : null;
+      const wpItem = wpPage || wpProduct;
+      if (wpItem && site) {
+        const titleMatch = wpItem.content?.rendered?.match(/<h2[^>]*>(?:<strong>)?([^<]+)(?:<\/strong>)?<\/h2>/i);
+        const pageTitle = titleMatch ? titleMatch[1].trim() : (wpItem.title?.rendered || 'Course');
+        const featuredImage = getFeaturedImage(wpItem);
+        let finalImgUrl = featuredImage?.url;
+        if (!finalImgUrl || finalImgUrl.toLowerCase().includes('logo')) {
+          finalImgUrl = getTopicFallbackImage(targetSlug, pageTitle);
+        }
+        const courseDuration = wpItem.acf?.duration || '120–360 Hours (Certificate)';
+        const courseSchedule = wpItem.acf?.schedule || 'Flexible & Small Classes';
+        const courseLevel = wpItem.acf?.level || 'Beginner to Intermediate';
+        const startDates = ['July 20, 2026', 'August 17, 2026', 'September 14, 2026'];
+        const coursePrice = wpItem.price || wpItem.acf?.price || '$1,495';
+
+        let cleanContent = wpItem.content?.rendered || '';
+        if (titleMatch && cleanContent.includes(titleMatch[0])) {
+          cleanContent = cleanContent.replace(titleMatch[0], '');
+        }
+
+        return (
+          <main className="min-h-screen py-16 px-4 sm:px-6 lg:px-8 bg-slate-50">
+            <div className="max-w-6xl mx-auto">
+              <div className="mb-8">
+                <Link href="/" className="text-xs font-bold uppercase tracking-wider text-slate-400 hover:text-slate-600 transition-colors">
+                  ← Back to Home
+                </Link>
+              </div>
+
+              <div className="grid gap-12 lg:grid-cols-3">
+                <div className="lg:col-span-2 space-y-8">
+                  <div className="bg-white rounded-3xl p-8 sm:p-12 shadow-sm border border-slate-100/80">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-6" style={{ color: site.accentColor, backgroundColor: `${site.accentColor}10` }}>
+                      Garnish {site.city}
+                    </span>
+                    <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight font-display mb-6">
+                      {pageTitle}
+                    </h1>
+
+                    <div className="relative aspect-[16/9] w-full rounded-2xl overflow-hidden bg-slate-100 my-8 shadow-sm border border-slate-100">
+                      <CourseImage src={finalImgUrl} alt={featuredImage?.alt || pageTitle} />
+                    </div>
+
+                    <h2 className="text-xl font-bold text-slate-900 mb-4 font-display">Course Overview & Modules</h2>
+                    <div className="wp-content prose prose-slate max-w-none text-slate-700 leading-relaxed" style={{ '--accent': site.accentColor } as React.CSSProperties} dangerouslySetInnerHTML={{ __html: parseWPBakery(cleanContent, site.accentColor) }} />
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100/80 sticky top-28">
+                    <div className="mb-6">
+                      <span className="text-xs text-slate-400 font-medium block">Tuition Price</span>
+                      <span className="text-3xl font-black text-slate-900 tracking-tight block mt-1">{coursePrice}</span>
+                    </div>
+
+                    <Link href={`/checkout?product=${targetSlug}`} className="block w-full text-center py-4 rounded-xl text-sm font-bold text-white transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 mb-3" style={{ backgroundColor: site.accentColor }}>
+                      Enroll Online & Checkout
+                    </Link>
+                    <Link href="/contact" className="block w-full text-center py-3.5 rounded-xl text-sm font-bold border-2 transition-all hover:bg-slate-50 text-slate-700 border-slate-200 mb-6">
+                      Request Schedule & Info
+                    </Link>
+
+                    <div className="space-y-4 pt-6 border-t border-slate-100 text-xs">
+                      <div className="flex justify-between py-1"><span className="text-slate-400">Duration:</span><span className="font-bold text-slate-800">{courseDuration}</span></div>
+                      <div className="flex justify-between py-1"><span className="text-slate-400">Schedule:</span><span className="font-bold text-slate-800">{courseSchedule}</span></div>
+                      <div className="flex justify-between py-1"><span className="text-slate-400">Level:</span><span className="font-bold text-slate-800">{courseLevel}</span></div>
+                      <div className="flex justify-between py-1"><span className="text-slate-400">Tutors:</span><span className="font-bold text-slate-800">Award-winning Pros</span></div>
+                    </div>
+
+                    <div className="mt-8 pt-6 border-t border-slate-100">
+                      <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Upcoming Intake Dates</h3>
+                      <div className="space-y-2">
+                        {startDates.map((date, index) => (
+                          <div key={index} className="flex items-center gap-3 text-xs text-slate-600">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                            <span>{date}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </main>
+        );
+      }
+
       result = await payload.find({
         collection: 'courses',
         where: {
@@ -184,6 +383,14 @@ export default async function ProductDetailPage({ params }: Props) {
             { tenant: { equals: 'www' } },
           ],
         },
+      });
+    }
+
+    if (result.docs.length === 0) {
+      result = await payload.find({
+        collection: 'courses',
+        where: { slug: { equals: targetSlug } },
+        limit: 1,
       });
     }
 
@@ -206,6 +413,12 @@ export default async function ProductDetailPage({ params }: Props) {
       const course = result.docs[0];
       const courseDuration = course.duration || '360 Hours (Certificate)';
       const coursePrice = course.price || '$1,495';
+      const isPrivateTuitionCourse =
+        course.slug === 'ableton-live-course-london' ||
+        targetSlug === 'ableton-live-course-london' ||
+        course.slug?.endsWith('-london') ||
+        targetSlug.endsWith('-london') ||
+        course.slug === 'private-tuition';
 
       return (
         <main className="min-h-screen py-16 px-4 sm:px-6 lg:px-8 bg-slate-50">
@@ -216,8 +429,8 @@ export default async function ProductDetailPage({ params }: Props) {
               </Link>
             </div>
 
-            <div className="grid gap-12 lg:grid-cols-3">
-              <div className="lg:col-span-2 space-y-8">
+            {isPrivateTuitionCourse ? (
+              <div className="max-w-4xl mx-auto space-y-8">
                 <div className="bg-white rounded-3xl p-8 sm:p-12 shadow-sm border border-slate-100/80">
                   <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-6" style={{ color: site.accentColor, backgroundColor: `${site.accentColor}10` }}>
                     Garnish {site.city}
@@ -261,56 +474,139 @@ export default async function ProductDetailPage({ params }: Props) {
                     style={{ '--accent': site.accentColor } as React.CSSProperties}
                     dangerouslySetInnerHTML={{ __html: parseWPBakery(course.description || 'Full academy syllabus, mixing assignments, hands-on workstation setup, and 1-on-1 mentorship.', site.accentColor) }}
                   />
+
+                  <div className="mt-12 bg-slate-50 rounded-2xl p-8 border border-slate-200/80">
+                    <h3 className="text-xl font-bold text-slate-900 font-display mb-3">
+                      Private Tuition &amp; Booking Inquiries
+                    </h3>
+                    <p className="text-slate-600 leading-relaxed mb-6">
+                      We’re currently offering our short courses via 1-on-1 private tuition — available in London, Cardiff, Manchester, Margate, Brighton, other select locations, and online. Study at your own pace with our award-winning industry instructors.
+                    </p>
+                    <div className="flex flex-wrap items-center gap-4">
+                      <Link
+                        href="/bespoke-private-tuition"
+                        className="inline-flex items-center justify-center px-6 py-3.5 rounded-xl text-sm font-bold text-white transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
+                        style={{ backgroundColor: site.accentColor }}
+                      >
+                        Inquire About Private Tuition →
+                      </Link>
+                      <Link
+                        href="/contact-map"
+                        className="inline-flex items-center justify-center px-6 py-3.5 rounded-xl text-sm font-bold text-slate-700 bg-slate-200/60 hover:bg-slate-200 transition-colors"
+                      >
+                        Contact Our Admissions Team
+                      </Link>
+                    </div>
+                  </div>
                 </div>
               </div>
-
-              <div className="space-y-6">
-                <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100/80 sticky top-28">
-                  <div className="mb-6">
-                    <span className="text-xs text-slate-400 font-medium block">Tuition Price</span>
-                    <span className="text-3xl font-black text-slate-900 tracking-tight block mt-1">
-                      {coursePrice}
+            ) : (
+              <div className="grid gap-12 lg:grid-cols-3">
+                <div className="lg:col-span-2 space-y-8">
+                  <div className="bg-white rounded-3xl p-8 sm:p-12 shadow-sm border border-slate-100/80">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-6" style={{ color: site.accentColor, backgroundColor: `${site.accentColor}10` }}>
+                      Garnish {site.city}
                     </span>
+                    <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight font-display mb-6">
+                      {course.title}
+                    </h1>
+
+                    {(() => {
+                      const imgObj = typeof course.featuredImage === 'object' && course.featuredImage !== null ? course.featuredImage : null;
+                      let imgUrl = imgObj?.url?.startsWith('http') ? imgObj.url : null;
+                      if (!imgUrl) {
+                        const rawUrl = imgObj?.wpUploadPath
+                          ? `/uploads/${imgObj.wpUploadPath}`
+                          : (imgObj?.url || (imgObj?.filename ? `/media/${imgObj.filename}` : null));
+                        imgUrl = resolveImageUrl(rawUrl);
+                      }
+                      if (!imgUrl || imgUrl.toLowerCase().includes('logo') || (imgObj?.filename && imgObj.filename.toLowerCase().includes('logo'))) {
+                        imgUrl = getTopicFallbackImage(course.slug || targetSlug, course.title);
+                      }
+                      return (
+                        <div className="relative aspect-[16/9] w-full rounded-2xl overflow-hidden bg-slate-100 mb-8 shadow-sm border border-slate-100">
+                          <CourseImage
+                            src={imgUrl}
+                            alt={imgObj?.alt || course.title}
+                          />
+                        </div>
+                      );
+                    })()}
+
+                    {course.shortDescription && (
+                      <div 
+                        className="text-base sm:text-lg text-slate-600 leading-relaxed mb-6 wp-short-description"
+                        dangerouslySetInnerHTML={{ __html: parseWPBakery(course.shortDescription, site.accentColor) }}
+                      />
+                    )}
+
+                    <h2 className="text-xl font-bold text-slate-900 mb-4 font-display">Course Overview</h2>
+                    <div 
+                      className="wp-content prose prose-slate max-w-none text-slate-700 leading-relaxed"
+                      style={{ '--accent': site.accentColor } as React.CSSProperties}
+                      dangerouslySetInnerHTML={{ __html: parseWPBakery(course.description || 'Full academy syllabus, mixing assignments, hands-on workstation setup, and 1-on-1 mentorship.', site.accentColor) }}
+                    />
                   </div>
+                </div>
 
-                  <Link
-                    href={`/checkout?product=${course.slug}`}
-                    className="block w-full text-center py-4 rounded-xl text-sm font-bold text-white transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 mb-6"
-                    style={{ backgroundColor: site.accentColor }}
-                  >
-                    Enroll Now &amp; Checkout
-                  </Link>
-
-                  <div className="space-y-4 pt-6 border-t border-slate-100 text-xs">
-                    <div className="flex justify-between py-1">
-                      <span className="text-slate-400">Duration:</span>
-                      <span className="font-bold text-slate-800">{courseDuration}</span>
+                <div className="space-y-6">
+                  <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100/80 sticky top-28">
+                    <div className="mb-6">
+                      <span className="text-xs text-slate-400 font-medium block">Tuition Price</span>
+                      <span className="text-3xl font-black text-slate-900 tracking-tight block mt-1">
+                        {coursePrice}
+                      </span>
                     </div>
-                    <div className="flex justify-between py-1">
-                      <span className="text-slate-400">Class Size:</span>
-                      <span className="font-bold text-slate-800">Max 6-8 Students</span>
+
+                    <Link
+                      href={`/checkout?product=${course.slug}`}
+                      className="block w-full text-center py-4 rounded-xl text-sm font-bold text-white transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 mb-6"
+                      style={{ backgroundColor: site.accentColor }}
+                    >
+                      Enroll Now &amp; Checkout
+                    </Link>
+
+                    <div className="space-y-4 pt-6 border-t border-slate-100 text-xs">
+                      <div className="flex justify-between py-1">
+                        <span className="text-slate-400">Duration:</span>
+                        <span className="font-bold text-slate-800">{courseDuration}</span>
+                      </div>
+                      <div className="flex justify-between py-1">
+                        <span className="text-slate-400">Class Size:</span>
+                        <span className="font-bold text-slate-800">Max 6-8 Students</span>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </main>
       );
     }
-  } catch {
-    // Payload DB offline or not yet migrated, fallback below
+  } catch (err) {
+    console.error('Payload error in ProductDetailPage:', err);
   }
 
-  // 2. Second: Check legacy WordPress product API
-  const product = await getProductBySlug(subdomain, targetSlug);
+  // 2. Second: Check legacy WordPress Page / Product API
+  const wpPage = await getPageBySlug(subdomain, targetSlug);
+  const product = !wpPage ? await getProductBySlug(subdomain, targetSlug) : null;
+  const item = wpPage || product;
 
-  if (product) {
-    const featuredImage = getFeaturedImage(product);
-    const courseDuration = product.acf?.duration || '120 Hours (Intensive)';
-    const courseSchedule = product.acf?.schedule || 'Mon - Fri (10 AM - 5 PM)';
-    const courseLevel = product.acf?.level || 'Beginner to Intermediate';
+  if (item) {
+    const featuredImage = getFeaturedImage(item);
+    const titleMatch = item.content?.rendered?.match(/<h2[^>]*>(?:<strong>)?([^<]+)(?:<\/strong>)?<\/h2>/i);
+    const pageTitle = titleMatch ? titleMatch[1].trim() : (item.title?.rendered || 'Course');
+    const courseDuration = item.acf?.duration || '120–360 Hours (Certificate)';
+    const courseSchedule = item.acf?.schedule || 'Flexible & Small Classes';
+    const courseLevel = item.acf?.level || 'Beginner to Intermediate';
     const startDates = ['July 20, 2026', 'August 17, 2026', 'September 14, 2026'];
+    const coursePrice = item.price || item.acf?.price || '$1,495';
+
+    let cleanContent = item.content?.rendered || '';
+    if (titleMatch && cleanContent.includes(titleMatch[0])) {
+      cleanContent = cleanContent.replace(titleMatch[0], '');
+    }
 
     return (
       <main className="min-h-screen py-16 px-4 sm:px-6 lg:px-8 bg-slate-50">
@@ -325,42 +621,27 @@ export default async function ProductDetailPage({ params }: Props) {
             <div className="lg:col-span-2 space-y-8">
               <div className="bg-white rounded-3xl p-8 sm:p-12 shadow-sm border border-slate-100/80">
                 <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-6" style={{ color: site.accentColor, backgroundColor: `${site.accentColor}10` }}>
-                  Music Course
+                  Garnish {site.city}
                 </span>
-                <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight font-display mb-6" dangerouslySetInnerHTML={{ __html: product.title.rendered }} />
+                <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight font-display mb-6">
+                  {pageTitle}
+                </h1>
 
                 {(() => {
-                  const featuredImage = getFeaturedImage(product);
+                  const featuredImage = getFeaturedImage(item);
                   let finalImgUrl = featuredImage?.url;
                   if (!finalImgUrl || finalImgUrl.toLowerCase().includes('logo')) {
-                    finalImgUrl = getTopicFallbackImage(targetSlug, product.title.rendered);
+                    finalImgUrl = getTopicFallbackImage(targetSlug, pageTitle);
                   }
                   return (
                     <div className="relative aspect-[16/9] w-full rounded-2xl overflow-hidden bg-slate-100 my-8 shadow-sm border border-slate-100">
-                      <CourseImage src={finalImgUrl} alt={featuredImage?.alt || product.title.rendered} />
+                      <CourseImage src={finalImgUrl} alt={featuredImage?.alt || pageTitle} />
                     </div>
                   );
                 })()}
 
-                <h2 className="text-xl font-bold text-slate-900 mb-4 font-display">Course Overview</h2>
-                <div className="wp-content prose prose-slate max-w-none" style={{ '--accent': site.accentColor } as React.CSSProperties} dangerouslySetInnerHTML={{ __html: product.content.rendered.replace(/https?:\/\/[^\/]+\/wp-content\/uploads\//gi, 'https://www.garnishmusicproduction.com/wp-content/uploads/').replace(/src=["']\/uploads\//gi, 'src="https://www.garnishmusicproduction.com/wp-content/uploads/') }} />
-              </div>
-
-              <div className="bg-white rounded-3xl p-8 sm:p-12 shadow-sm border border-slate-100/80">
-                <h2 className="text-xl font-bold text-slate-900 mb-6 font-display">What You Will Learn</h2>
-                <div className="space-y-4">
-                  {[
-                    { title: 'Module 1: DAW Setup & Workflow', desc: 'Understanding your audio interface, MIDI, signal flow, and custom templates.' },
-                    { title: 'Module 2: Synthesis & Sound Design', desc: 'Working with Subtractive, FM, and Wavetable synthesis to design your own sounds.' },
-                    { title: 'Module 3: Arrangement & Structure', desc: 'Creating musical tension, drops, and build-ups using arrangement templates.' },
-                    { title: 'Module 4: Audio Engineering & Mixing', desc: 'EQ, compression, spatial effects, and final mastering.' }
-                  ].map((mod, i) => (
-                    <div key={i} className="border-b border-slate-100 pb-4">
-                      <h3 className="font-bold text-slate-800 text-sm mb-1">{mod.title}</h3>
-                      <p className="text-xs text-slate-500 leading-relaxed">{mod.desc}</p>
-                    </div>
-                  ))}
-                </div>
+                <h2 className="text-xl font-bold text-slate-900 mb-4 font-display">Course Overview & Modules</h2>
+                <div className="wp-content prose prose-slate max-w-none text-slate-700 leading-relaxed" style={{ '--accent': site.accentColor } as React.CSSProperties} dangerouslySetInnerHTML={{ __html: parseWPBakery(cleanContent, site.accentColor) }} />
               </div>
             </div>
 
@@ -368,10 +649,10 @@ export default async function ProductDetailPage({ params }: Props) {
               <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100/80 sticky top-28">
                 <div className="mb-6">
                   <span className="text-xs text-slate-400 font-medium block">Total Price</span>
-                  <span className="text-3xl font-black text-slate-900 tracking-tight block mt-1">{product.price || '$995'}</span>
+                  <span className="text-3xl font-black text-slate-900 tracking-tight block mt-1">{item.price || item.acf?.price || '$995'}</span>
                 </div>
 
-                <Link href={`/checkout?product=${product.slug}`} className="block w-full text-center py-4 rounded-xl text-sm font-bold text-white transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 mb-6" style={{ backgroundColor: site.accentColor }}>
+                <Link href={`/checkout?product=${item.slug || targetSlug}`} className="block w-full text-center py-4 rounded-xl text-sm font-bold text-white transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 mb-6" style={{ backgroundColor: site.accentColor }}>
                   Book Now &amp; Checkout
                 </Link>
 

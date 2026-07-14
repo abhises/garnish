@@ -303,7 +303,23 @@ export interface Course {
   title: string;
   slug: string;
   tenant:
-    'www' | 'la' | 'ny' | 'ber' | 'nsh' | 'tyo' | 'bcn' | 'sea' | 'mia' | 'hou' | 'syd' | 'lis' | 'sf' | 'sg' | 'pdx';
+    | 'www'
+    | 'london'
+    | 'uk'
+    | 'la'
+    | 'ny'
+    | 'ber'
+    | 'nsh'
+    | 'tyo'
+    | 'bcn'
+    | 'sea'
+    | 'mia'
+    | 'hou'
+    | 'syd'
+    | 'lis'
+    | 'sf'
+    | 'sg'
+    | 'pdx';
   wpPostId?: number | null;
   shortDescription?: string | null;
   description?: string | null;

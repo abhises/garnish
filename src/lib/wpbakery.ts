@@ -69,20 +69,16 @@ export function parseWPBakery(content: string | null | undefined, accentColor: s
     `;
   });
 
-  // 2. Process Mikado Accordions ([mkd_accordion] ... [/mkd_accordion])
-  html = html.replace(/\[mkd_accordion\s*([^\]]*)\]/gi, '<div class="my-8 space-y-4 w-full test-page-accordion">');
-  html = html.replace(/\[\/mkd_accordion\]/gi, '</div>');
-
-  // 3. Process Accordion Tabs ([mkd_accordion_tab title="The Basics" ...])
+  // 2. Process Accordion Tabs ([mkd_accordion_tab title="The Basics" ...] or [vc_accordion_tab title="..."]) FIRST before container
   let accordionIndex = 0;
-  html = html.replace(/\[mkd_accordion_tab\s*([^\]]*)\]/gi, (match, attrs) => {
+  html = html.replace(/\[(?:mkd|vc)_accordion_tab\s*([^\]]*)\]/gi, (match, attrs) => {
     const titleMatch = attrs.match(/title=["']([^"']+)["']/i);
     const title = titleMatch ? titleMatch[1] : 'Course Section';
     const isOpen = accordionIndex === 0 ? ' open' : '';
     accordionIndex++;
 
     return `
-      <details class="group rounded-2xl bg-white border border-slate-200 overflow-hidden shadow-sm transition-all"${isOpen}>
+      <details class="group rounded-2xl bg-white border border-slate-200 overflow-hidden shadow-sm transition-all mb-4"${isOpen}>
         <summary class="flex items-center justify-between p-4 sm:p-5 text-white font-bold cursor-pointer select-none text-base sm:text-lg transition-colors" style="background-color: ${accentColor};">
           <span>${title}</span>
           <span class="text-xl font-mono transition-transform duration-200 group-open:rotate-180">▾</span>
@@ -90,16 +86,37 @@ export function parseWPBakery(content: string | null | undefined, accentColor: s
         <div class="p-6 text-slate-700 leading-relaxed bg-white border-t border-slate-100 prose prose-slate max-w-none">
     `;
   });
-  html = html.replace(/\[\/mkd_accordion_tab\]/gi, '</div></details>');
+  html = html.replace(/\[\/(?:mkd|vc)_accordion_tab\]/gi, '</div></details>');
+
+  // 3. Process Accordions container ([mkd_accordion] or [vc_accordion] ... [/mkd_accordion]) AFTER tabs
+  html = html.replace(/\[(?:mkd|vc)_accordion\b(?!(?:_tab|_item))[^\]]*\]/gi, '<div class="my-8 space-y-4 w-full test-page-accordion">');
+  html = html.replace(/\[\/(?:mkd|vc)_accordion\b(?!(?:_tab|_item))\]/gi, '</div>');
+
+  // 3b. Convert standard headings (<h5> / <h4> / <h3>) followed immediately by lists (<ul> / <ol>) into interactive collapsible accordions (matches production course dropdown boxes)
+  html = html.replace(/<h[345]>\s*(?:<strong>)?([^<]+)(?:<\/strong>)?\s*<\/h[345]>\s*(<(?:ul|ol)[^>]*>[\s\S]*?<\/(?:ul|ol)>)/gi, (match, title, list) => {
+    const cleanTitle = title.trim();
+    return `
+      <details class="group rounded-2xl bg-white border border-slate-200 overflow-hidden shadow-sm transition-all mb-4">
+        <summary class="flex items-center justify-between p-4 sm:p-5 font-bold cursor-pointer select-none text-base sm:text-lg transition-colors text-white" style="background-color: ${accentColor};">
+          <span>${cleanTitle}</span>
+          <span class="text-xl font-mono transition-transform duration-200 group-open:rotate-180">▾</span>
+        </summary>
+        <div class="p-6 text-slate-700 leading-relaxed bg-white border-t border-slate-100 prose prose-slate max-w-none">
+          ${list}
+        </div>
+      </details>
+    `;
+  });
 
   // 4. Process Mikado Separators
-  html = html.replace(/\[mkd_separator\s*([^\]]*)\]/gi, `
+  html = html.replace(/\[mkd_separator\b[^\]]*\]/gi, `
     <hr class="my-6 border-t-2 w-full" style="border-color: ${accentColor};" />
   `);
 
   // 5. Process structural shortcodes (vc_row, vc_column)
-  html = html.replace(/\[vc_row\s*([^\]]*)\]/gi, (match, attrs) => {
-    const urlMatch = attrs.match(/url\(([^)]+)\)/i);
+  html = html.replace(/\[vc_row\b(?!(?:_inner))\s*([^\]]*)\]/gi, (match, attrs) => {
+    const attrStr = typeof attrs === 'string' ? attrs : '';
+    const urlMatch = attrStr.match(/url\(([^)]+)\)/i);
     let styleAttr = '';
     let extraClass = '';
     if (urlMatch && urlMatch[1]) {
@@ -109,13 +126,14 @@ export function parseWPBakery(content: string | null | undefined, accentColor: s
     }
     return `<div class="flex flex-wrap gap-8 my-8 w-full${extraClass}" ${styleAttr}>`;
   });
-  html = html.replace(/\[\/vc_row\]/gi, '</div>');
+  html = html.replace(/\[\/vc_row\b(?!(?:_inner))\]/gi, '</div>');
 
-  html = html.replace(/\[vc_row_inner\s*([^\]]*)\]/gi, '<div class="flex flex-wrap gap-6 my-4 w-full">');
-  html = html.replace(/\[\/vc_row_inner\]/gi, '</div>');
+  html = html.replace(/\[vc_row_inner\b[^\]]*\]/gi, '<div class="flex flex-wrap gap-6 my-4 w-full">');
+  html = html.replace(/\[\/vc_row_inner\b[^\]]*\]/gi, '</div>');
 
-  html = html.replace(/\[vc_column\s*([^\]]*)\]/gi, (match, attrs) => {
-    const widthMatch = attrs.match(/width=["']([^"']+)["']/i);
+  html = html.replace(/\[vc_column\b(?!(?:_inner|_text))\s*([^\]]*)\]/gi, (match, attrs) => {
+    const attrStr = typeof attrs === 'string' ? attrs : '';
+    const widthMatch = attrStr.match(/width=["']([^"']+)["']/i);
     const widthVal = widthMatch ? widthMatch[1] : '1/1';
     
     let widthClass = 'w-full';
@@ -125,7 +143,7 @@ export function parseWPBakery(content: string | null | undefined, accentColor: s
     else if (widthVal === '1/4') widthClass = 'w-full md:w-[calc(25%-1rem)]';
     else if (widthVal === '3/4') widthClass = 'w-full md:w-[calc(75%-1rem)]';
 
-    const urlMatch = attrs.match(/url\(([^)]+)\)/i);
+    const urlMatch = attrStr.match(/url\(([^)]+)\)/i);
     let styleAttr = '';
     let extraClass = '';
     if (urlMatch && urlMatch[1]) {
@@ -135,10 +153,11 @@ export function parseWPBakery(content: string | null | undefined, accentColor: s
     }
     return `<div class="${widthClass} flex flex-col justify-center${extraClass}" ${styleAttr}>`;
   });
-  html = html.replace(/\[\/vc_column\]/gi, '</div>');
+  html = html.replace(/\[\/vc_column\b(?!(?:_inner|_text))\]/gi, '</div>');
 
-  html = html.replace(/\[vc_column_inner\s*([^\]]*)\]/gi, (match, attrs) => {
-    const widthMatch = attrs.match(/width=["']([^"']+)["']/i);
+  html = html.replace(/\[vc_column_inner\b(?!(?:_text))\s*([^\]]*)\]/gi, (match, attrs) => {
+    const attrStr = typeof attrs === 'string' ? attrs : '';
+    const widthMatch = attrStr.match(/width=["']([^"']+)["']/i);
     const widthVal = widthMatch ? widthMatch[1] : '1/1';
     
     let widthClass = 'w-full';
@@ -154,7 +173,8 @@ export function parseWPBakery(content: string | null | undefined, accentColor: s
 
   // 6. Process vc_empty_space
   html = html.replace(/\[vc_empty_space\s*([^\]]*)\]/gi, (match, attrs) => {
-    const heightMatch = attrs.match(/height="([^"]+)"/i) || attrs.match(/height=([^\s\]]+)/i);
+    const attrStr = typeof attrs === 'string' ? attrs : '';
+    const heightMatch = attrStr.match(/height="([^"]+)"/i) || attrStr.match(/height=([^\s\]]+)/i);
     const height = heightMatch ? heightMatch[1] : '24px';
     return `<div style="height: ${height};" class="w-full"></div>`;
   });
@@ -162,12 +182,16 @@ export function parseWPBakery(content: string | null | undefined, accentColor: s
   // 7. Strip all remaining unhandled vc_ and mkd_ shortcodes ([vc_column_text], [/vc_column_text], [mkd_portfolio_slider...], etc.)
   html = html.replace(/\[\/?(vc_|mkd_)[^\]]*\]/gi, '');
 
-  // 8. Clean up leftover empty paragraphs and convert CDN links
+  // 8. Clean up leftover empty paragraphs and convert CDN links → Cloudinary garnish-uploads
   html = html.replace(/<p>\s*<\/p>/gi, '');
+  // Route all WordPress upload URLs to Cloudinary garnish-uploads (no external WP dependency)
   html = html
-    .replace(/https?:\/\/[^\/]+\/wp-content\/uploads\//gi, 'https://www.garnishmusicproduction.com/wp-content/uploads/')
-    .replace(/(?<![a-z]:\/\/[^\s"']*)\/(wp-content\/uploads\/)/gi, 'https://www.garnishmusicproduction.com/$1')
-    .replace(/src=["']\/uploads\//gi, 'src="https://www.garnishmusicproduction.com/wp-content/uploads/');
+    .replace(/https?:\/\/[^\/\s"']+\/wp-content\/uploads\/([^"'\s>?#]+)/gi,
+      'https://res.cloudinary.com/s7pus8t5/image/upload/garnish-uploads/$1')
+    .replace(/(?<![a-z]:\/\/[^\s"']*)\/(wp-content\/uploads\/)([^"'\s>?#]+)/gi,
+      'https://res.cloudinary.com/s7pus8t5/image/upload/garnish-uploads/$2')
+    .replace(/src=["']\/uploads\/([^"'\s>?#]+)/gi,
+      'src="https://res.cloudinary.com/s7pus8t5/image/upload/garnish-uploads/$1"');
 
   // 9. Force any WPBakery column wrapping mkd-testimonials to occupy 100% full width
   if (html.includes('mkd-testimonials') || html.includes('mkd-testimonial')) {

@@ -115,7 +115,7 @@ const getAboutItems = (subdomain?: string) => {
   if (subdomain === 'sf') {
     return [
       { label: 'Home', href: '/' },
-      { label: 'Online', href: 'https://edu.garnishmusicproduction.com/live-online/' },
+      { label: 'Online', href: '/remote-attendance/' },
       { label: 'Dave Garnish', href: 'https://edu.garnishmusicproduction.com/music/dave-garnish/' },
       { label: 'Terms', href: '/terms/' },
       { label: 'Privacy Policy', href: '/privacy-policy/' },
@@ -317,33 +317,36 @@ const getCoursesItems = (subdomain?: string): Record<string, CourseCategory> => 
 
   if (subdomain === 'sf') {
     return {
-      programs: {
-        heading: 'Programs & Workshops',
+      accredited: {
+        heading: 'Accredited',
         items: [
-          { label: 'Ableton Music Producer Program', href: '/programs/ableton-music-producer-program/' },
-          { label: 'Build Beats Better Workshop', href: '/courses/buildbeatsbetter/' },
-          { label: '12 Hour Music Business Course', href: '/courses/music-business/' },
+          { label: 'F1 USA Visa Eligible (LA)', href: 'https://la.garnishmusicproduction.com/undergraduate-business-and-music/' },
+          { label: 'BA (Hons) Pathways (BCN)', href: 'https://bcn.garnishmusicproduction.com/ba-pathway-courses/' },
         ],
       },
-      daws: {
-        heading: 'DAW Training',
+      comprehensive: {
+        heading: 'Comprehensive Programs',
         items: [
-          { label: 'Ableton Live 101/201', href: '/courses/abletonlive101201/' },
-          { label: 'Logic Pro X', href: '/courses/logic-course/' },
+          { label: 'Ableton Producer Program', href: '/ableton-producer-program/' },
+          { label: 'Logic Pro Music Producer', href: '/logic-producer-program/' },
+          { label: 'Music Production', href: 'https://edu.garnishmusicproduction.com/uk-bachelors-degree/' },
         ],
       },
-      dj: {
-        heading: 'DJ Courses',
+      express: {
+        heading: 'Express Classes',
         items: [
-          { label: 'Electronic Music DJ', href: '/courses/electronic-music-dj-course/' },
-          { label: '12 Hours Private DJ Lessons', href: '/courses/12-hours-private-dj-lessons/' },
+          { label: 'Ableton Live', href: '/courses/ableton-live-course/' },
+          { label: 'Logic Pro', href: '/courses/logic-course/' },
+          { label: 'Pro Tools', href: '/courses/pro-tools101-course/' },
+          { label: 'The Art of Mixing and Mastering', href: '/courses/mixing-mastering-course/' },
+          { label: 'Sound Design & Synthesis', href: '/courses/electronic-music-sound-design/' },
         ],
       },
-      others: {
-        heading: 'Tuition & Payment Plans',
+      djAndMore: {
+        heading: 'DJ & More',
         items: [
-          { label: 'Course Tuition Options', href: '/courses/course-tuition/' },
-          { label: 'Workshop Payment Plan', href: '/courses/36-hour-workshop-payment-plan-custom/' },
+          { label: 'Private Instruction', href: '/courses/private-instruction/' },
+          { label: 'DJ Course (Electronic)', href: '/courses/electronic-dj-course/' },
         ],
       },
     };

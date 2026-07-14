@@ -29,6 +29,8 @@ export const Courses: CollectionConfig = {
       defaultValue: 'www',
       options: [
         { label: 'Main (www)', value: 'www' },
+        { label: 'London (london)', value: 'london' },
+        { label: 'United Kingdom (uk)', value: 'uk' },
         { label: 'Los Angeles (la)', value: 'la' },
         { label: 'New York (ny)', value: 'ny' },
         { label: 'Berlin (ber)', value: 'ber' },
