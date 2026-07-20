@@ -24,7 +24,7 @@ const { Pool } = pkg;
       let sqliteRows;
       try {
         sqliteRows = sqlite.prepare(`SELECT * FROM ${table}`).all();
-      } catch (e) {
+      } catch (e: any) {
         console.log(`Table ${table} might not exist in SQLite, skipping.`);
         continue;
       }
@@ -56,7 +56,7 @@ const { Pool } = pkg;
           try {
             await pool.query(`INSERT INTO ${table} (${colNames}) VALUES (${placeholders})`, values);
             insertedCount++;
-          } catch (e) {
+          } catch (e: any) {
              console.error(`Failed to insert ID ${row.id} into ${table}: ${e.message}`);
           }
         }
@@ -68,9 +68,9 @@ const { Pool } = pkg;
       try {
         await pool.query(`SELECT setval('${table}_id_seq', (SELECT max(id) FROM ${table}))`);
         console.log(`✅ Sequence ${table}_id_seq updated.`);
-      } catch (e) {}
+      } catch (e: any) {}
     }
-  } catch (err) {
+  } catch (err: any) {
     console.error(err);
   } finally {
     pool.end();
