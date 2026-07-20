@@ -952,13 +952,6 @@ export const RANK_MATH_REDIRECTS: RedirectRule[] = [
     "subdomain": "www"
   },
   {
-    "source": "courses/dave-garnish/",
-    "destination": "https://edu.garnishmusicproduction.com/music/dave-garnish/",
-    "statusCode": 301,
-    "comparison": "exact",
-    "subdomain": "www"
-  },
-  {
     "source": "contact-dg/",
     "destination": "https://edu.garnishmusicproduction.com/contact-mgmt/",
     "statusCode": 301,
@@ -2542,13 +2535,15 @@ export const RANK_MATH_REDIRECTS: RedirectRule[] = [
   }
 ];
 
+
+
 // Build optimized lookup maps for instant middleware execution
-const exactRedirectMap = new Map<string, string>();
-const subdomainRedirectMap = new Map<string, string>();
+const rawExactMap = new Map<string, string>();
+const rawSubdomainMap = new Map<string, string>();
 
 for (const rule of RANK_MATH_REDIRECTS) {
   const normalized = rule.source.replace(/^\//, '');
-  const targetMap = (rule.subdomain && rule.subdomain !== 'www') ? subdomainRedirectMap : exactRedirectMap;
+  const targetMap = (rule.subdomain && rule.subdomain !== 'www') ? rawSubdomainMap : rawExactMap;
   const prefix = (rule.subdomain && rule.subdomain !== 'www') ? `${rule.subdomain}:` : '';
 
   // Higher priority rules (earlier in list) take precedence
@@ -2565,6 +2560,33 @@ for (const rule of RANK_MATH_REDIRECTS) {
   }
 }
 
+// Intelligent Cycle Detector & Chain Flattener
+function resolveRedirect(source: string, map: Map<string, string>, visited = new Set<string>()): string | null {
+  if (visited.has(source)) return null; // CYCLE DETECTED!
+  visited.add(source);
+  const dest = map.get(source);
+  if (!dest) return null; // End of chain
+
+  // If destination is absolute, we treat it as an endpoint
+  if (dest.startsWith('http')) return dest;
+
+  // Otherwise, follow the chain
+  const nextDest = resolveRedirect(dest, map, visited) || resolveRedirect(dest.replace(/^\//, ''), map, visited);
+  return nextDest || dest;
+}
+
+export const exactRedirectMap = new Map<string, string>();
+export const subdomainRedirectMap = new Map<string, string>();
+
+for (const [key, value] of rawExactMap.entries()) {
+  const resolved = resolveRedirect(key, rawExactMap);
+  if (resolved) exactRedirectMap.set(key, resolved);
+}
+
+for (const [key, value] of rawSubdomainMap.entries()) {
+  const resolved = resolveRedirect(key, rawSubdomainMap);
+  if (resolved) subdomainRedirectMap.set(key, resolved);
+}
 /**
  * Checks if the given pathname, search query, and subdomain match any 301 redirect rule.
  */
@@ -2647,6 +2669,9 @@ export function getNextConfigRedirects() {
   for (const rule of RANK_MATH_REDIRECTS) {
     // Skip regex rules in static config (middleware handles regex dynamically across subdomains)
     if (rule.comparison === 'regex') continue;
+
+    // Skip cross-domain redirects in static config so middleware can translate them for localhost
+    if (rule.destination.includes('garnishmusicproduction.com')) continue;
 
     if (rule.source.includes('?')) {
       const [pathPart, queryPart] = rule.source.split('?');

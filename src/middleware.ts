@@ -44,12 +44,17 @@ export function middleware(request: NextRequest) {
   // Check Rank Math 301 redirects (subdomain & attachment aware)
   const redirectTarget = getRankMathRedirect(url.pathname, url.search, subdomain);
   if (redirectTarget) {
-    // In local development (localhost), do not redirect out to production external domains (like https://edu.garnishmusicproduction.com/music/dave-garnish/)
     const isLocalhost = hostname.includes('localhost') || hostname.startsWith('127.0.0.1');
-    const isExternalGarnish = typeof redirectTarget === 'string' && (redirectTarget.includes('dave-garnish') || redirectTarget.includes('garnishmusicproduction.com'));
-    if (!isLocalhost || !isExternalGarnish) {
-      return NextResponse.redirect(new URL(redirectTarget, request.url), 301);
+    if (isLocalhost && typeof redirectTarget === 'string' && redirectTarget.includes('garnishmusicproduction.com')) {
+      // Map production domains to localhost domains dynamically
+      const localTarget = redirectTarget
+        .replace('https://', 'http://')
+        .replace('.garnishmusicproduction.com', '.localhost:3000')
+        .replace('www.localhost:3000', 'localhost:3000');
+      return NextResponse.redirect(new URL(localTarget, request.url), 301);
     }
+    
+    return NextResponse.redirect(new URL(redirectTarget, request.url), 301);
   }
 
   // Rewrite path internally: /about → /la/about  (so Next.js routes to [subdomain]/page.tsx)

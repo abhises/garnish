@@ -21,6 +21,11 @@ export function parseWPBakery(content: string | null | undefined, accentColor: s
     .replace(/‘/g, "'")
     .replace(/’/g, "'");
 
+  // Strip hardcoded legacy white text inline styles which make text invisible on our new white cards
+  html = html
+    .replace(/color:\s*#[fF]{3,6};?/g, '')
+    .replace(/<span\s+style=["']\s*["']\s*>/gi, '<span>');
+
   // Clean up paragraph and line break tags that wrap or touch shortcodes
   html = html
     .replace(/<p>\s*(\[\/?(vc_|mkd_)[^\]]+\])\s*<\/p>/gi, '$1')

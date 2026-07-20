@@ -36,7 +36,7 @@ const getAboutItems = (subdomain?: string) => {
       { label: 'Discord', href: 'https://garn.link/discord' },
       { label: 'Tutors', href: '/instructors/' },
       { label: 'Appu Krishnan', href: 'https://la.garnishmusicproduction.com/instructors/appu/' },
-      { label: 'Dave Garnish', href: 'https://edu.garnishmusicproduction.com/music/dave-garnish/' },
+      { label: 'Dave Garnish', href: 'https://edu.garnishmusicproduction.com/courses/dave-garnish/' },
       { label: 'Terms', href: '/terms/' },
       { label: 'Privacy Policy', href: '/privacy-policy/' },
       { label: 'Gift Certificate', href: 'https://edu.garnishmusicproduction.com/gift/' },
@@ -47,7 +47,7 @@ const getAboutItems = (subdomain?: string) => {
     return [
       { label: 'Home', href: '/' },
       { label: 'International Academy', href: '/international-academy/' },
-      { label: 'Dave Garnish', href: 'https://edu.garnishmusicproduction.com/music/dave-garnish/' },
+      { label: 'Dave Garnish', href: 'https://edu.garnishmusicproduction.com/courses/dave-garnish/' },
       { label: 'Terms', href: '/terms/' },
       { label: 'Privacy Policy', href: '/privacy-policy/' },
       { label: 'Contact', href: '/contact/' },
@@ -58,7 +58,7 @@ const getAboutItems = (subdomain?: string) => {
       { label: 'Home', href: '/' },
       { label: 'Open House', href: '/open-house/' },
       { label: 'Instructors', href: '/instructors/' },
-      { label: 'Dave Garnish', href: 'https://edu.garnishmusicproduction.com/music/dave-garnish/' },
+      { label: 'Dave Garnish', href: 'https://edu.garnishmusicproduction.com/courses/dave-garnish/' },
       { label: 'Terms', href: '/terms/' },
       { label: 'Privacy Policy', href: '/privacy-policy/' },
       { label: 'Contact', href: '/contact/' },
@@ -68,7 +68,7 @@ const getAboutItems = (subdomain?: string) => {
     return [
       { label: 'Home', href: '/' },
       { label: 'Private/Bespoke', href: '/bespoke-private-tuition/' },
-      { label: 'Dave Garnish', href: 'https://edu.garnishmusicproduction.com/music/dave-garnish/' },
+      { label: 'Dave Garnish', href: 'https://edu.garnishmusicproduction.com/courses/dave-garnish/' },
       { label: 'Compliancy', href: '/compliancy/' },
       { label: 'Privacy', href: '/privacy-policy/' },
       { label: 'Contact', href: '/contact/' },
@@ -79,7 +79,7 @@ const getAboutItems = (subdomain?: string) => {
       { label: 'Home', href: '/' },
       { label: 'Discord', href: 'https://garn.link/discord' },
       { label: 'Instructors', href: '/instructors/' },
-      { label: 'Dave Garnish', href: 'https://edu.garnishmusicproduction.com/music/dave-garnish/' },
+      { label: 'Dave Garnish', href: 'https://edu.garnishmusicproduction.com/courses/dave-garnish/' },
       { label: 'Terms', href: '/terms/' },
       { label: 'Privacy Policy', href: '/privacy-policy/' },
       { label: 'Contact', href: '/contact/' },
@@ -88,7 +88,7 @@ const getAboutItems = (subdomain?: string) => {
   if (subdomain === 'bcn') {
     return [
       { label: 'Home', href: '/' },
-      { label: 'Dave Garnish', href: 'https://edu.garnishmusicproduction.com/music/dave-garnish/' },
+      { label: 'Dave Garnish', href: 'https://edu.garnishmusicproduction.com/courses/dave-garnish/' },
       { label: 'Private Tuition', href: '/bespoke-private-tuition/' },
       { label: 'Terms', href: '/terms/' },
       { label: 'Privacy Policy', href: '/privacy-policy/' },
@@ -99,7 +99,7 @@ const getAboutItems = (subdomain?: string) => {
     return [
       { label: 'Home', href: '/' },
       { label: 'Instructors', href: '/instructors/' },
-      { label: 'Dave Garnish', href: 'https://edu.garnishmusicproduction.com/music/dave-garnish/' },
+      { label: 'Dave Garnish', href: 'https://edu.garnishmusicproduction.com/courses/dave-garnish/' },
       { label: 'Online Community', href: 'https://garn.link/discord' },
       { label: 'Terms', href: '/terms/' },
       { label: 'Privacy Policy', href: '/privacy-policy/' },
@@ -110,7 +110,7 @@ const getAboutItems = (subdomain?: string) => {
     return [
       { label: 'Home', href: '/' },
       { label: 'Online', href: '/remote-attendance/' },
-      { label: 'Dave Garnish', href: 'https://edu.garnishmusicproduction.com/music/dave-garnish/' },
+      { label: 'Dave Garnish', href: 'https://edu.garnishmusicproduction.com/courses/dave-garnish/' },
       { label: 'Terms', href: '/terms/' },
       { label: 'Privacy Policy', href: '/privacy-policy/' },
       { label: 'Contact', href: '/contact/' },
@@ -120,7 +120,7 @@ const getAboutItems = (subdomain?: string) => {
     return [
       { label: 'Home', href: '/' },
       { label: 'Tutors', href: '/instructors/' },
-      { label: 'Dave Garnish', href: 'https://edu.garnishmusicproduction.com/music/dave-garnish/' },
+      { label: 'Dave Garnish', href: 'https://edu.garnishmusicproduction.com/courses/dave-garnish/' },
       { label: 'Terms', href: '/terms/' },
       { label: 'Privacy Policy', href: '/privacy-policy/' },
     ];
@@ -128,7 +128,7 @@ const getAboutItems = (subdomain?: string) => {
   return [
     { label: 'Home', href: '/' },
     { label: 'Instructors', href: '/instructors/' },
-    { label: 'Dave Garnish', href: 'https://edu.garnishmusicproduction.com/music/dave-garnish/' },
+    { label: 'Dave Garnish', href: 'https://edu.garnishmusicproduction.com/courses/dave-garnish/' },
     { label: 'Open House', href: '/open-house/' },
     { label: 'Private/Bespoke Tuition', href: '/bespoke-private-tuition/' },
     { label: 'Online Community', href: 'https://garn.link/discord' },
@@ -183,7 +183,7 @@ const getCoursesItems = (subdomain?: string): Record<string, CourseCategory> => 
         items: [
           { label: 'Private Instruction & Tuition', href: '/bespoke-private-tuition/' },
           { label: 'Ableton Garnish Certified', href: '/courses/ableton-garnish-certified/' },
-          { label: 'Dave Garnish Masterclass', href: 'https://edu.garnishmusicproduction.com/music/dave-garnish/' },
+          { label: 'Dave Garnish Masterclass', href: 'https://edu.garnishmusicproduction.com/courses/dave-garnish/' },
         ],
       },
     };
@@ -478,8 +478,15 @@ export default function Header({ site }: HeaderProps) {
     };
 
     if (isExternal(localHref)) {
+      const isInternalSubdomain = localHref.includes('garnishmusicproduction.com') || localHref.includes('.localhost:3000');
       return (
-        <a href={localHref} className={className} target="_blank" rel="noopener noreferrer" onClick={handleClick}>
+        <a 
+          href={localHref} 
+          className={className} 
+          target={isInternalSubdomain ? "_self" : "_blank"} 
+          rel={isInternalSubdomain ? undefined : "noopener noreferrer"} 
+          onClick={handleClick}
+        >
           {label}
         </a>
       );
@@ -498,7 +505,8 @@ export default function Header({ site }: HeaderProps) {
               alt="Garnish Music Production School"
               width={120}
               height={40}
-              className="h-[40px] w-auto object-contain"
+              className="h-10 w-auto object-contain"
+              style={{ width: 'auto', height: 'auto' }}
               priority
               unoptimized
             />

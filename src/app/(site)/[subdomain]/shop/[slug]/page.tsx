@@ -10,6 +10,8 @@ import { CourseImage } from '@/components/CourseImage';
 import { parseWPBakery } from '@/lib/wpbakery';
 import { buildCourseMetadata, buildCourseJsonLd, buildBreadcrumbJsonLd } from '@/lib/seo';
 
+export const dynamic = 'force-dynamic';
+
 const LEGACY_SLUG_MAP: Record<string, string> = {
   // London-specific suffixed slugs → canonical DB slugs
   'school-summer-camp': 'summer-camp',
@@ -27,12 +29,10 @@ const LEGACY_SLUG_MAP: Record<string, string> = {
   'rhythm-section-programming': 'rhythm-section-pro',
   'radio-podcast': 'composition',
   'dj-course': 'electronic-music-dj-course',
-  'post-production': 'electronic-music-production',
   'k-pop': 'songwriting-course',
   'bespoke-private-tuition': 'private-tuition',
   'private-lessons': 'private-tuition',
   // Academy / Program slugs
-  'electronic-music-production': 'ableton-producer-program',
   'pop-producer-program': 'pop-music-production-course',
   // Alternate spellings across tenants
   'ableton-live': 'ableton-production',
@@ -99,7 +99,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     if (wpItem && site) {
       const titleMatch = wpItem.content?.rendered?.match(/<h2[^>]*>(?:<strong>)?([^<]+)(?:<\/strong>)?<\/h2>/i);
       const pageTitle = titleMatch ? titleMatch[1].trim() : (wpItem.title?.rendered || 'Course');
-      overrides.title = `${pageTitle} | Courses | ${site.name}`;
+      overrides.title = pageTitle === 'Dave Garnish' ? pageTitle : `${pageTitle} | Courses | ${site.name}`;
       overrides.description = wpItem.excerpt?.rendered?.replace(/<[^>]*>/g, '').substring(0, 160) || `${pageTitle} course at Garnish ${site.city}`;
       const featuredImage = getFeaturedImage(wpItem);
       if (featuredImage) {
@@ -148,7 +148,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
     if (result.docs[0]) {
       const c = result.docs[0];
-      overrides.title = `${c.title} | Courses | ${site.name}`;
+      overrides.title = c.title === 'Dave Garnish' ? c.title : `${c.title} | Courses | ${site.name}`;
       overrides.description = c.shortDescription || `${c.title} course at Garnish ${site.city}`;
       
       const imgObj = typeof c.featuredImage === 'object' && c.featuredImage !== null ? c.featuredImage : null;
@@ -176,7 +176,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (item && site) {
     const titleMatch = item.content?.rendered?.match(/<h2[^>]*>(?:<strong>)?([^<]+)(?:<\/strong>)?<\/h2>/i);
     const pageTitle = titleMatch ? titleMatch[1].trim() : (item.title?.rendered || 'Course');
-    overrides.title = `${pageTitle} | Courses | ${site.name}`;
+    overrides.title = pageTitle === 'Dave Garnish' ? pageTitle : `${pageTitle} | Courses | ${site.name}`;
     overrides.description = item.excerpt?.rendered?.replace(/<[^>]*>/g, '').substring(0, 160) || 'Learn music production.';
     const featuredImage = getFeaturedImage(item);
     if (featuredImage) {
@@ -306,7 +306,7 @@ export default async function ProductDetailPage({ params }: Props) {
       },
     });
 
-    if (result.docs.length === 0 && subdomain !== 'www') {
+    if (result.docs.length === 0) {
       const wpPage = await getPageBySlug(subdomain, targetSlug);
       const wpProduct = !wpPage ? await getProductBySlug(subdomain, targetSlug) : null;
       const wpItem = wpPage || wpProduct;

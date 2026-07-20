@@ -108,6 +108,13 @@ export const COURSE_SEO: Record<string, CourseSeoTemplate> = {
     robots: 'follow, index, max-snippet:-1, max-video-preview:-1, max-image-preview:large',
   },
 
+  // ── Undergraduate / Academy Programs ──────────────────────────────────
+  'undergraduate-business-and-music': {
+    titleTemplate: 'F1 Visa Music & Business Program | Garnish %city%',
+    description: 'The Undergraduate Business and Music program at Garnish %city% offers international students the opportunity to study on an F1 Visa.',
+    focusKeyword: 'f1 visa music program',
+  },
+
   // ── Logic Pro ─────────────────────────────────────────────────────────
   'logic-pro-x-course-london': {
     titleTemplate: 'World-class Logic Pro X Course | %city%',
@@ -232,16 +239,16 @@ export const COURSE_SEO: Record<string, CourseSeoTemplate> = {
 
   // ── Diploma / Programs ────────────────────────────────────────────────
   'ableton-producer-program': {
-    titleTemplate: 'Electronic Music Producer Program | %city%',
+    titleTemplate: 'World-class Ableton Electronic Music Production Program | %city%',
     description:
-      "The certified Electronic Music Producer program at Garnish %city% — 360 hours, boutique class sizes, award-winning instructors.",
+      "Learn at the world's boutique Ableton Electronic Music Production Program, where aspiring & established music-makers network, create, & collaborate doing what they love.",
     focusKeyword: 'ableton producer program',
     ogType: 'article',
     twitterCard: 'summary_large_image',
     robots: 'follow, index, max-snippet:-1, max-video-preview:-1, max-image-preview:large',
   },
   'electronic-music-production': {
-    titleTemplate: 'Garnish Industry Diploma | Electronic Music Production | %city%',
+    titleTemplate: 'Electronic Music Production Diploma | %sitename%',
     description:
       "Master electronic music production at Garnish %city% with our flagship 360-hour industry diploma program",
     focusKeyword: 'electronic music production diploma',
@@ -358,10 +365,10 @@ export function buildCourseMetadata(
 
   // Build title — replacing %city% placeholder with actual city
   let title: string;
-  if (overrides?.title) {
+  if (seoTemplate && seoTemplate.titleTemplate) {
+    title = seoTemplate.titleTemplate.replace(/%city%/g, site.city).replace(/%sitename%/g, 'GARNISH Music School');
+  } else if (overrides?.title) {
     title = overrides.title;
-  } else if (seoTemplate) {
-    title = seoTemplate.titleTemplate.replace(/%city%/g, site.city);
   } else {
     // Fallback: capitalise slug words + site city (mirrors RankMath template pattern)
     const wordTitle = slug
@@ -373,10 +380,10 @@ export function buildCourseMetadata(
 
   // Build description — replacing %city% placeholder
   let description: string;
-  if (overrides?.description) {
-    description = overrides.description;
-  } else if (seoTemplate) {
+  if (seoTemplate && seoTemplate.description) {
     description = seoTemplate.description.replace(/%city%/g, site.city);
+  } else if (overrides?.description) {
+    description = overrides.description;
   } else {
     description = `Learn ${title.split('|')[0].trim()} at the world's boutique music production school in ${site.city}, where aspiring & established music-makers network, create, & collaborate doing what they love`;
   }

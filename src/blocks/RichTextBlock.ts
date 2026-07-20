@@ -12,6 +12,7 @@ export const RichTextBlock: Block = {
       type: 'textarea',
       label: 'HTML or Migrated WPBakery Content',
       required: true,
+      maxLength: 2000000,
     },
     {
       name: 'containerWidth',

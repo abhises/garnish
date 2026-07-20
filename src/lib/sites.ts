@@ -288,19 +288,16 @@ export function getCitySites(): SiteConfig[] {
  */
 export function getLocalLink(url: string): string {
   // Check if we are running in development environment
-  const isDev = process.env.NODE_ENV === 'development';
+  let isDev = process.env.NODE_ENV === 'development';
+  if (typeof window !== 'undefined') {
+    isDev = window.location.hostname.includes('localhost') || window.location.hostname === '127.0.0.1';
+  }
   
   if (!isDev) {
     return url;
   }
 
-  // Keep dave-garnish and appu on relative local paths in development mode
-  if (url.includes('dave-garnish')) {
-    return '/courses/dave-garnish/';
-  }
-  if (url.includes('appu')) {
-    return '/instructors/appu/';
-  }
+
 
   try {
     if (url.startsWith('https://') && url.includes('garnishmusicproduction.com')) {

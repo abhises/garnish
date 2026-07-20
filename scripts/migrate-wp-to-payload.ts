@@ -33,7 +33,7 @@ const MULTISITE_MAP: Record<number, string> = {
 /**
  * Parses raw WordPress WPBakery content and extracts structured blocks for Payload CMS.
  */
-function parseWPBakeryToBlocks(rawContent: string, tenant: string) {
+export function parseWPBakeryToBlocks(rawContent: string, tenant: string) {
   const blocks: any[] = [];
   if (!rawContent) return blocks;
 

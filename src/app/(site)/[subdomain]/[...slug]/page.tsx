@@ -1,4 +1,7 @@
+export const dynamic = 'force-dynamic';
+
 import { getPageBySlug, getFeaturedImage, resolveImageUrl } from '@/lib/wordpress';
+import { COURSE_SEO } from '@/lib/seo';
 import { SITES } from '@/lib/sites';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
@@ -93,8 +96,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         return (indexA === -1 ? 999 : indexA) - (indexB === -1 ? 999 : indexB);
       });
       const p = sortedDocs[0];
+      
+      const seoTemplate = COURSE_SEO[targetSlug];
+      if (seoTemplate && seoTemplate.titleTemplate) {
+        return {
+          title: seoTemplate.titleTemplate.replace(/%city%/g, site?.city || ''),
+          description: seoTemplate.description ? seoTemplate.description.replace(/%city%/g, site?.city || '') : undefined,
+        };
+      }
       return {
-        title: `${p.title} | ${site?.name || 'Garnish Music Production'}`,
+        title: p.seo?.metaTitle || `${p.title} | ${site?.name || 'Garnish Music Production'}`,
         description: p.seo?.metaDescription || `${p.title} at Garnish ${site?.city || ''}`,
       };
     }
@@ -109,6 +120,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   if (page && site) {
+    const seoTemplate = COURSE_SEO[targetSlug];
+    if (seoTemplate && seoTemplate.titleTemplate) {
+      return {
+        title: seoTemplate.titleTemplate.replace(/%city%/g, site.city),
+        description: seoTemplate.description ? seoTemplate.description.replace(/%city%/g, site.city) : undefined,
+      };
+    }
     return {
       title: `${page.title.rendered} | ${site.name}`,
       description: page.excerpt?.rendered.replace(/<[^>]*>/g, '').substring(0, 160) || `${page.title.rendered} at Garnish ${site.city}`,
@@ -171,10 +189,6 @@ export default async function DynamicSubdomainPage({ params }: Props) {
                 imgUrl = resolveImageUrl(rawUrl);
               }
               
-              if (!imgUrl && site.heroImage) {
-                imgUrl = site.heroImage;
-              }
-              
               if (!imgUrl) return null;
               
               return (
@@ -210,8 +224,7 @@ export default async function DynamicSubdomainPage({ params }: Props) {
 
   // 2. If found in legacy WordPress DB, render dynamic WP Page content
   if (page) {
-    const fetchedImg = getFeaturedImage(page);
-    const featuredImage = fetchedImg || (site.heroImage ? { url: site.heroImage, alt: site.name } : null);
+    const featuredImage = getFeaturedImage(page);
     const hasWPBakery = page.content.rendered.includes('[vc_');
     return (
       <main className="min-h-screen py-16 px-4 sm:px-6 lg:px-8 bg-slate-50">

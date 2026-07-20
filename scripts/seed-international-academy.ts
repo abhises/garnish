@@ -1,3 +1,6 @@
+import dotenv from 'dotenv';
+dotenv.config({ path: '.env.local' });
+
 import { getPayload } from 'payload';
 import configPromise from '../src/payload.config';
 
@@ -24,6 +27,9 @@ async function seedInternationalAcademy() {
   const tenants = ['edu', 'www'];
   const slug = 'international-academy';
 
+  console.log('Using manually inserted media ID 1051...');
+  let mediaId = 1051;
+
   for (const tenant of tenants) {
     const existing = await payload.find({
       collection: 'pages',
@@ -49,6 +55,7 @@ async function seedInternationalAcademy() {
       slug,
       tenant: tenant as any,
       layout,
+      featuredImage: mediaId,
       seo: {
         metaTitle: `${title} | Garnish ${tenant.toUpperCase()}`,
         metaDescription: excerpt.replace(/<[^>]*>/g, '').substring(0, 160),

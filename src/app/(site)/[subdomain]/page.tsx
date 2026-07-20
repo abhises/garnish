@@ -13,13 +13,13 @@ interface SubdomainPageProps {
 export async function generateMetadata({ params }: SubdomainPageProps): Promise<Metadata> {
   const { subdomain } = await params;
   const site = SITES[subdomain];
-  const rmSettings = RANK_MATH_SUBDOMAIN_SETTINGS[subdomain];
 
-  const title = rmSettings?.websiteName || site?.name || 'Garnish Music Production School';
+  const city = site?.city || 'London';
+  const title = `World-class Music Production Courses | Lessons in ${city}`;
   const description = 'World-class Music Production Courses — Approved by 3 DAWs. Many locations from LA to Hong Kong, and LIVE online.';
 
   return {
-    title: `${title} | World-class Music Production Courses`,
+    title,
     description,
     openGraph: {
       title,
