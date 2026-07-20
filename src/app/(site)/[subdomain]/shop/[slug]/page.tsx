@@ -440,9 +440,6 @@ export default async function ProductDetailPage({ params }: Props) {
       // Any course that previously ended in '-london' or is a short express course
       // for the www tenant should use the single-column private tuition layout.
       const SHORT_COURSE_SLUGS_NO_SIDEBAR = new Set([
-        'ableton-live-course-london', 'logic-pro-x-course-london', 'logic-course',
-        'songwriting-course-london', 'songwriting-course',
-        'mixing-and-mastering-course-london', 'mixing-mastering-course',
         'ableton-live-for-djs', 'sound-design', 'sounds-design-synthesis',
         'rekordbox', 'arturia', 'electronic-sound-art',
         'rhythm-section-programming', 'rhythm-section-pro',
@@ -452,11 +449,13 @@ export default async function ProductDetailPage({ params }: Props) {
         'school-summer-camp', 'summer-camp',
       ]);
       const isPrivateTuitionCourse =
-        subdomain === 'www' ||
         SHORT_COURSE_SLUGS_NO_SIDEBAR.has(course.slug || '') ||
         SHORT_COURSE_SLUGS_NO_SIDEBAR.has(targetSlug) ||
         course.slug?.endsWith('-london') ||
-        targetSlug.endsWith('-london');
+        targetSlug.endsWith('-london') ||
+        targetSlug === 'private-tuition' ||
+        targetSlug === 'private-lessons' ||
+        targetSlug === 'bespoke-private-tuition';
 
       return (
         <main className="min-h-screen py-16 px-4 sm:px-6 lg:px-8 bg-slate-50">

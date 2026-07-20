@@ -126,7 +126,7 @@ export const COURSE_SEO: Record<string, CourseSeoTemplate> = {
     robots: 'follow, index, max-snippet:-1, max-video-preview:-1, max-image-preview:large',
   },
   'logic-course': {
-    titleTemplate: 'World-class Logic Pro Music Production Course | %city%',
+    titleTemplate: 'World-class Logic Pro X Music Production Program | %city%',
     description:
       "Learn Logic Pro at the world's boutique music production school in %city%, where aspiring & established music-makers network, create, & collaborate doing what they love",
     focusKeyword: 'logic pro course',
@@ -146,7 +146,7 @@ export const COURSE_SEO: Record<string, CourseSeoTemplate> = {
     robots: 'follow, index, max-snippet:-1, max-video-preview:-1, max-image-preview:large',
   },
   'songwriting-course': {
-    titleTemplate: 'World-class Hit Songwriting Course | %city%',
+    titleTemplate: 'Hit Songwriting Course in %city% & Online - Serious Songwriting Training',
     description:
       "Learn Songwriting at the world's boutique music production school in %city%, where aspiring & established music-makers network, create, & collaborate doing what they love",
     focusKeyword: 'songwriting course',
@@ -157,7 +157,7 @@ export const COURSE_SEO: Record<string, CourseSeoTemplate> = {
 
   // ── Composition & Rhythm ──────────────────────────────────────────────
   'composition': {
-    titleTemplate: 'World-class Music Composition Course | %city%',
+    titleTemplate: 'World-class Composition Course | %city%',
     description:
       "Learn Music Composition at the world's boutique music production school in %city%, where aspiring & established music-makers network, create, & collaborate doing what they love",
     focusKeyword: 'composition course',

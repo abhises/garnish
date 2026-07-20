@@ -113,6 +113,22 @@ export function parseWPBakery(content: string | null | undefined, accentColor: s
     `;
   });
 
+  // 3c. Process mkd_accordion and mkd_accordion_tab directly from shortcodes
+  html = html.replace(/\[mkd_accordion\b[^\]]*\]/gi, '<div class="space-y-4 my-6">');
+  html = html.replace(/\[\/mkd_accordion\]/gi, '</div>');
+  
+  html = html.replace(/\[mkd_accordion_tab\b[^\]]*title=["']([^"']+)["'][^\]]*\]/gi, (match, title) => {
+    return `
+      <details class="group rounded-2xl bg-white border border-slate-200 overflow-hidden shadow-sm transition-all mb-4">
+        <summary class="flex items-center justify-between p-4 sm:p-5 font-bold cursor-pointer select-none text-base sm:text-lg transition-colors text-white" style="background-color: ${accentColor};">
+          <span>${title}</span>
+          <span class="text-xl font-mono transition-transform duration-200 group-open:rotate-180">▾</span>
+        </summary>
+        <div class="p-6 text-slate-700 leading-relaxed bg-white border-t border-slate-100 prose prose-slate max-w-none">
+    `;
+  });
+  html = html.replace(/\[\/mkd_accordion_tab\]/gi, '</div></details>');
+
   // 4. Process Mikado Separators
   html = html.replace(/\[mkd_separator\b[^\]]*\]/gi, `
     <hr class="my-6 border-t-2 w-full" style="border-color: ${accentColor};" />
