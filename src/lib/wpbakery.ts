@@ -1,4 +1,4 @@
-import { resolveImageUrl } from './wordpress';
+import { resolveImageUrl } from './resolve-image';
 
 /**
  * Parses WPBakery Page Builder and Mikado theme shortcodes into clean,

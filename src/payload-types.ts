@@ -133,6 +133,8 @@ export interface User {
   allowedTenants?:
     | (
         | 'www'
+        | 'london'
+        | 'uk'
         | 'la'
         | 'ny'
         | 'ber'
@@ -147,6 +149,7 @@ export interface User {
         | 'sf'
         | 'sg'
         | 'pdx'
+        | 'edu'
       )[]
     | null;
   updatedAt: string;
@@ -178,6 +181,8 @@ export interface Page {
   slug: string;
   tenant:
     | 'www'
+    | 'london'
+    | 'uk'
     | 'la'
     | 'ny'
     | 'ber'
@@ -334,7 +339,8 @@ export interface Course {
     | 'lis'
     | 'sf'
     | 'sg'
-    | 'pdx';
+    | 'pdx'
+    | 'edu';
   wpPostId?: number | null;
   shortDescription?: string | null;
   description?: string | null;
@@ -353,7 +359,24 @@ export interface Post {
   title: string;
   slug: string;
   tenant:
-    'www' | 'la' | 'ny' | 'ber' | 'nsh' | 'tyo' | 'bcn' | 'sea' | 'mia' | 'hou' | 'syd' | 'lis' | 'sf' | 'sg' | 'pdx';
+    | 'www'
+    | 'london'
+    | 'uk'
+    | 'la'
+    | 'ny'
+    | 'ber'
+    | 'nsh'
+    | 'tyo'
+    | 'bcn'
+    | 'sea'
+    | 'mia'
+    | 'hou'
+    | 'syd'
+    | 'lis'
+    | 'sf'
+    | 'sg'
+    | 'pdx'
+    | 'edu';
   wpPostId?: number | null;
   excerpt?: string | null;
   content?: {

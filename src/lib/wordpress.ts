@@ -1,28 +1,9 @@
-// src/lib/wordpress.ts
+import { getPayload } from 'payload';
+import configPromise from '@/payload.config';
 
-/**
- * Builds the WordPress REST API base URL for a given subdomain.
- *
- * - In development (no WORDPRESS_BASE_DOMAIN set): uses localhost:8080 for
- *   the main site only. All subsite content is fetched from the LIVE production
- *   API because WordPress Multisite subdomain routing does not resolve on localhost.
- *
- * - In production (Vercel): constructs https://{subdomain}.{WORDPRESS_BASE_DOMAIN}/wp-json
- *   for every subsite automatically.
- */
-export function getApiUrl(subdomain: string = 'www'): string {
-  const baseDomain = process.env.WORDPRESS_BASE_DOMAIN || 'garnishmusicproduction.com';
+// src/lib/wordpress.ts (Now completely backed by Neon DB / Payload CMS)
 
-  // Always use the live production API (works for both local dev & production)
-  // because WordPress Multisite subdomain URLs cannot resolve on localhost.
-  if (subdomain === 'www' || subdomain === '') {
-    return `https://www.${baseDomain}/wp-json`;
-  }
-
-  return `https://${subdomain}.${baseDomain}/wp-json`;
-}
-
-// General WordPress Post/Page Interface
+// General WordPress Post/Page Interface (Maintained for backward compatibility with React components)
 export interface WordPressPost {
   id: number;
   date: string;
@@ -40,7 +21,7 @@ export interface WordPressPost {
     rendered: string;
   };
   featured_media: number;
-  price?: string; // For WooCommerce products
+  price?: string;
   regular_price?: string;
   sale_price?: string;
   acf?: Record<string, any>;
@@ -65,60 +46,10 @@ export interface WordPressPost {
   };
 }
 
-// Utility to resolve any image or upload path to Cloudinary / live CDN when local files are not present
-export function resolveImageUrl(urlOrPath: string | undefined | null): string | null {
-  if (!urlOrPath || typeof urlOrPath !== 'string' || urlOrPath.trim() === '') return null;
-
-  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_CLOUD_NAME || 's7pus8t5';
-
-  // Already a full Cloudinary URL — pass through unchanged (handles garnish-media and garnish-uploads DB URLs)
-  if (urlOrPath.startsWith('https://res.cloudinary.com/')) {
-    return urlOrPath;
-  }
-
-  // Any other full http/https URL — pass through as-is
-  if (urlOrPath.startsWith('http://') || urlOrPath.startsWith('https://')) {
-    return urlOrPath;
-  }
-
-  // Local /media/ folder or /studio-hero paths → garnish-media (campus hero images)
-  if (urlOrPath.startsWith('/media/')) {
-    const filename = urlOrPath.replace(/^\/media\//, '');
-    return `https://res.cloudinary.com/${cloudName}/image/upload/garnish-media/${filename}`;
-  }
-  if (urlOrPath.startsWith('/studio-hero')) {
-    const filename = urlOrPath.replace(/^\//, '');
-    return `https://res.cloudinary.com/${cloudName}/image/upload/garnish-media/${filename}`;
-  }
-
-  // local-hero/ db wp_upload_path pattern → garnish-media
-  if (urlOrPath.startsWith('local-hero/')) {
-    const filename = urlOrPath.replace('local-hero/', '');
-    return `https://res.cloudinary.com/${cloudName}/image/upload/garnish-media/${filename}`;
-  }
-
-  // WordPress /uploads/ paths → garnish-uploads (user's Cloudinary upload folder)
-  if (urlOrPath.startsWith('/uploads/')) {
-    const relativePath = urlOrPath.replace(/^\/uploads\//, '');
-    return `https://res.cloudinary.com/${cloudName}/image/upload/garnish-uploads/${relativePath}`;
-  }
-
-  // Raw wpUploadPath patterns (e.g., '2018/03/foo.jpg' or 'sites/2/2019/01/bar.png') → garnish-uploads
-  if (/^(sites\/\d+\/)?\d{4}\/\d{2}\//.test(urlOrPath)) {
-    return `https://res.cloudinary.com/${cloudName}/image/upload/garnish-uploads/${urlOrPath.replace(/^\//, '')}`;
-  }
-
-  // Full wp-content/uploads URL from any domain → garnish-uploads
-  const wpMatch = urlOrPath.match(/[\/a-zA-Z0-9.:_-]*\/wp-content\/uploads\/(.+)/i);
-  if (wpMatch && wpMatch[1]) {
-    return `https://res.cloudinary.com/${cloudName}/image/upload/garnish-uploads/${wpMatch[1].split('?')[0]}`;
-  }
-
-  return urlOrPath;
-}
+import { resolveImageUrl } from './resolve-image';
+export { resolveImageUrl };
 
 
-// Utility to resolve featured image source URL from embedded data
 export function getFeaturedImage(post: WordPressPost, size: string = 'full'): { url: string; alt: string } | null {
   const media = post._embedded?.['wp:featuredmedia']?.[0];
   if (!media) return null;
@@ -130,12 +61,10 @@ export function getFeaturedImage(post: WordPressPost, size: string = 'full'): { 
   return { url, alt };
 }
 
-// Utility to resolve author name
 export function getAuthorName(post: WordPressPost): string {
   return post._embedded?.['author']?.[0]?.name || 'Admin';
 }
 
-// Utility to resolve terms (categories, tags, custom taxonomies)
 export function getTerms(post: WordPressPost, taxonomy: string = 'category') {
   const termGroups = post._embedded?.['wp:term'] || [];
   for (const group of termGroups) {
@@ -145,119 +74,116 @@ export function getTerms(post: WordPressPost, taxonomy: string = 'category') {
   return [];
 }
 
-/**
- * Fetch a collection of posts/pages/CPTs from the WordPress REST API for a specific subdomain.
- *
- * Resilience strategy:
- * - On 5xx (server error from WordPress): retry once WITHOUT _embed, since WordPress
- *   sometimes throws a 500 when _embed tries to resolve a broken media attachment.
- * - On 4xx or any network failure: log a warning and return [] — never crash the page.
- */
+// Convert a Payload CMS document into the legacy WordPress format
+function mapPayloadToWP(doc: any, type: string): WordPressPost {
+  let contentHtml = doc.htmlFallback || doc.description || '';
+  if (doc.content && typeof doc.content === 'string') contentHtml = doc.content;
+  if (!contentHtml && doc.layout) {
+    // Basic extraction if it uses blocks
+    contentHtml = doc.layout.map((b: any) => b.htmlContent || '').join('\n');
+  }
+
+  let imgObj = doc.featuredImage;
+  let imgUrl = '';
+  let imgAlt = doc.title || '';
+  if (imgObj && typeof imgObj === 'object') {
+     imgUrl = imgObj.url || (imgObj.filename ? `/media/${imgObj.filename}` : '') || (imgObj.wpUploadPath ? `/uploads/${imgObj.wpUploadPath}` : '');
+     imgAlt = imgObj.alt || doc.title || '';
+  }
+
+  return {
+    id: doc.id || 1,
+    date: doc.publishedAt || doc.createdAt || new Date().toISOString(),
+    slug: doc.slug,
+    status: 'publish',
+    type: type,
+    link: `/${doc.slug}`,
+    title: { rendered: doc.title || '' },
+    content: { rendered: contentHtml },
+    excerpt: { rendered: doc.excerpt || doc.shortDescription || contentHtml.replace(/<[^>]*>/g, '').substring(0, 160) },
+    featured_media: imgUrl ? 1 : 0,
+    price: doc.price,
+    acf: {
+      duration: doc.duration,
+      schedule: doc.schedule || 'Flexible',
+      level: doc.level || 'Beginner to Intermediate',
+      price: doc.price,
+    },
+    _embedded: {
+      'wp:featuredmedia': imgUrl ? [{
+         source_url: resolveImageUrl(imgUrl) || imgUrl,
+         alt_text: imgAlt,
+      }] : [],
+    }
+  };
+}
+
 export async function getCollection(
   subdomain: string,
   endpoint: string,
   queryParameters: Record<string, string | number> = {}
 ): Promise<WordPressPost[]> {
-  const apiUrl = getApiUrl(subdomain);
+  const payload = await getPayload({ config: configPromise });
+  let collection = 'posts';
+  if (endpoint === 'product' || endpoint === 'products') collection = 'courses';
+  if (endpoint === 'pages') collection = 'pages';
 
-  const buildUrl = (withEmbed: boolean): string => {
-    const params = new URLSearchParams();
-    if (withEmbed) params.append('_embed', '1');
-    Object.entries(queryParameters).forEach(([key, val]) => {
-      params.append(key, String(val));
-    });
-    return `${apiUrl}/wp/v2/${endpoint}?${params.toString()}`;
+  const where: any = {
+    tenant: { equals: subdomain === 'www' || !subdomain ? 'www' : subdomain }
   };
 
-  const attemptFetch = async (url: string): Promise<WordPressPost[] | null> => {
-    try {
-      const res = await fetch(url, {
-        next: { revalidate: 60 },
-      });
+  if (queryParameters.slug) {
+    where.slug = { equals: queryParameters.slug };
+  }
 
-      if (res.ok) {
-        return await res.json();
-      }
-
-      // 5xx = WordPress server error — caller will retry without _embed
-      if (res.status >= 500) {
-        console.warn(`[WP API] ${res.status} from ${url} — will retry without _embed`);
-        return null;
-      }
-
-      // 4xx = genuinely not found or forbidden — no point retrying
-      console.warn(`[WP API] ${res.status} from ${url} — skipping`);
-      return [];
-    } catch (err) {
-      console.warn(`[WP API] Network error fetching ${url}:`, err);
-      return [];
-    }
-  };
-
-  // First attempt: with _embed for rich data (featured images, terms, author)
-  const withEmbed = await attemptFetch(buildUrl(true));
-  if (withEmbed !== null) return withEmbed;
-
-  // Second attempt: without _embed (avoids WordPress 500s on broken media)
-  console.warn(`[WP API] Retrying ${endpoint} on "${subdomain}" without _embed`);
-  const withoutEmbed = await attemptFetch(buildUrl(false));
-  return withoutEmbed ?? [];
-}
-
-
-/**
- * Fetch a single post/page/CPT by its slug for a specific subdomain
- */
-export async function getSingleBySlug(
-  subdomain: string,
-  endpoint: string,
-  slug: string
-): Promise<WordPressPost | null> {
   try {
-    const posts = await getCollection(subdomain, endpoint, { slug });
-    if (posts && posts.length > 0) {
-      return posts[0];
+    const result = await payload.find({
+      collection: collection as any,
+      where,
+      limit: Number(queryParameters.per_page) || 10,
+      page: Number(queryParameters.page) || 1,
+    });
+
+    // Fallback to www for subdomains if content isn't found
+    if (result.docs.length === 0 && subdomain !== 'www') {
+      const fbResult = await payload.find({
+        collection: collection as any,
+        where: { ...where, tenant: { equals: 'www' } },
+        limit: Number(queryParameters.per_page) || 10,
+        page: Number(queryParameters.page) || 1,
+      });
+      return fbResult.docs.map(d => mapPayloadToWP(d, endpoint));
     }
-    return null;
-  } catch (error) {
-    console.error(`Error in getSingleBySlug for subdomain "${subdomain}", endpoint "${endpoint}", and slug "${slug}":`, error);
-    return null;
+
+    return result.docs.map(d => mapPayloadToWP(d, endpoint));
+  } catch (e) {
+    console.error('Payload fetch error:', e);
+    return [];
   }
 }
 
-/**
- * High-level helper: Fetch posts list
- */
+export async function getSingleBySlug(subdomain: string, endpoint: string, slug: string): Promise<WordPressPost | null> {
+  const posts = await getCollection(subdomain, endpoint, { slug });
+  if (posts && posts.length > 0) return posts[0];
+  return null;
+}
+
 export async function getPosts(subdomain: string, limit: number = 10, page: number = 1): Promise<WordPressPost[]> {
   return getCollection(subdomain, 'posts', { per_page: limit, page });
 }
 
-/**
- * High-level helper: Fetch single post
- */
 export async function getPostBySlug(subdomain: string, slug: string): Promise<WordPressPost | null> {
   return getSingleBySlug(subdomain, 'posts', slug);
 }
 
-/**
- * High-level helper: Fetch single page
- */
 export async function getPageBySlug(subdomain: string, slug: string): Promise<WordPressPost | null> {
   return getSingleBySlug(subdomain, 'pages', slug);
 }
 
-/**
- * High-level helper: Fetch WooCommerce products
- */
 export async function getProducts(subdomain: string, limit: number = 20): Promise<WordPressPost[]> {
-  // WooCommerce products are exposed via /wp/v2/product custom post type in standard WP REST configuration
-  // or /wc/v3/products if using the WooCommerce REST API. For headless setups, custom post type product is easiest.
   return getCollection(subdomain, 'product', { per_page: limit });
 }
 
-/**
- * High-level helper: Fetch WooCommerce product by slug
- */
 export async function getProductBySlug(subdomain: string, slug: string): Promise<WordPressPost | null> {
   return getSingleBySlug(subdomain, 'product', slug);
 }

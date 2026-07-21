@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload';
+import { TENANT_OPTIONS } from './constants';
 
 export const Posts: CollectionConfig = {
   slug: 'posts',
@@ -27,23 +28,7 @@ export const Posts: CollectionConfig = {
       required: true,
       index: true,
       defaultValue: 'www',
-      options: [
-        { label: 'Main (www)', value: 'www' },
-        { label: 'Los Angeles (la)', value: 'la' },
-        { label: 'New York (ny)', value: 'ny' },
-        { label: 'Berlin (ber)', value: 'ber' },
-        { label: 'Nashville (nsh)', value: 'nsh' },
-        { label: 'Tokyo (tyo)', value: 'tyo' },
-        { label: 'Barcelona (bcn)', value: 'bcn' },
-        { label: 'Seattle (sea)', value: 'sea' },
-        { label: 'Miami (mia)', value: 'mia' },
-        { label: 'Houston (hou)', value: 'hou' },
-        { label: 'Sydney (syd)', value: 'syd' },
-        { label: 'Lisbon (lis)', value: 'lis' },
-        { label: 'San Francisco (sf)', value: 'sf' },
-        { label: 'Singapore (sg)', value: 'sg' },
-        { label: 'Portland (pdx)', value: 'pdx' },
-      ],
+      options: TENANT_OPTIONS,
     },
     {
       name: 'wpPostId',

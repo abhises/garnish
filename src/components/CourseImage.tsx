@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { resolveImageUrl } from '@/lib/wordpress';
+import { resolveImageUrl } from '@/lib/resolve-image';
 
 interface CourseImageProps {
   src: string;
